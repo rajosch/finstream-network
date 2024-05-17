@@ -2,6 +2,37 @@
 https://www.iso20022.org/about-iso-20022
 
 
+## Prerequisites
+
+Before you begin, ensure you have met the following requirements:
+
+### System Dependencies
+
+- **xmllint**: This project uses `xmllint` for XML validation against XSD schemas. It is part of the `libxml2` toolkit. You must install this on your system to ensure XML validation functions correctly within the project. Here's how you can install it on various operating systems:
+
+#### Ubuntu/Debian
+```bash
+sudo apt-get update
+sudo apt-get install libxml2-utils
+```
+
+#### CentOS/RHEL
+```bash
+sudo yum install libxml2
+```
+
+#### macOS
+```bash
+brew install libxml2
+```
+
+Windows
+
+For Windows users, xmllint can be installed via:
+
+- Cygwin: Include libxml2 during the Cygwin installation.
+- Windows Subsystem for Linux (WSL): If you are using WSL, install libxml2-utils as you would in a Linux environment.
+
 ## ISO20022 Message Types
 
 As taken from the [ISO20022 message definitions](https://www.iso20022.org/iso-20022-message-definitions).
@@ -36,64 +67,6 @@ a. Set of characteristics that applies to the debit side of the payment transact
 3. SupplementaryData
 a. Additional information that cannot be captured in the structured elements and/or any other specific block.
 
-##### Relevant Message Elements
-1. Message root ```<Document> <CstmrCdtTrfInitn>```
-2. GroupHeader ```<GrpHdr>```
-a. MessageIdentification ```<MsgId>```
-b. CreationDateTime ```<CreDtTm>```
-c. Authorisation ```<Authstn>```
-d. NumberOfTransactions ```<NbOfTxs>```
-e. ControlSum ```<CtrlSum>```
-f. InitiatingParty ```<InitgPty>```
-3. PaymentInformation ```<PmtInf>```
-a. PaymentInformationIdentification ```<PmtInfId>```
-b. PaymentMethod ```<PmtMtd>```
-c. NumberOfTransactions ```<NbOfTxs>```
-d. ControlSum ```<CtrlSum>```
-e. PaymentTypeInformation ```<PmtTpInf>```
-f. RequestedExecutionDate ```<ReqdExctnDt>```
-g. Debtor ```<Dbtr>```
-h. DebtorAccount ```<DbtrAcct>```
-i. DebtorAgent ```<DbtrAgt>```
-j. DebtorAgentAccount ```<DbtrAgtAcct>```
-k. CreditTransferTransactionInformation ```<CdtTrfTxInf>```
-    1. PaymentIdentification ```<PmtId>```
-    2. PaymentTypeInformation ```<PmtTpInf>```
-    3. Amount ```<Amt>```
-    4. IntermediaryAgent1 ```<IntrmyAgt1>```
-    5. IngermediaryAgent1Account ```<IntrmyAgt1Acct>```
-    6. CreditorAgent ```<CdtrAgt>```
-    7. CreditorAgentAccount ```<CdtrAgtAcct>```
-    8. Creditor ```<Cdtr>```
-    9. CreditorAccount ```<CdtrAcct>```
-
-
-##### XML Example
-```
-<?xml version="1.0" encoding="UTF-8" ?/>
-<Document xmlns="urn:iso:sdt:iso:20022:tech:csd:pain.001.001.12">
-    <CstmrCdtTrfInitn>
-        <GrpHdr>
-            <MsgId>X-BA-001</MsgId>
-            <CreDtTm>2024-05-4T12:38:00</CreDtTm>
-            <Authnstn>
-                <Ptry>BA-signature</Ptry>
-            </Authnstn>
-            <NbOfTxs>1</NbOfTxs>
-            <CtrlSum>1000.00</CtrlSum>
-            <InitgPty>
-                <Nm>Alice</Nm>
-                <Id>BANKUS33XXX1234567890123456789012</Id>
-            </InitgPty>
-        </GrpHdr>
-        <PmtInf>
-            <PmtInfId>X-BA-PAY001</PmtInfId>
-            <PmtMtd>TRF</PmtMtd>
-            <NbOfTxs>1</NbOfTxs>
-        </PmtInf>
-    </CstmrCdtTrfInitn>
-</Document>
-```
 
 ### pacs.002.001.14 - Payment Status Report v14
 #### Definition
