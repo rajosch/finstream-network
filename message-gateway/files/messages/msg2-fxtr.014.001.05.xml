@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:fxtr.014.001.05">
+    <FXTradInstr>
+        <TradInf>
+            <TradDt>2024-05-04</TradDt>
+            <OrgtrRef>abc123</OrgtrRef>
+        </TradInf>
+        <TradgSdId>
+            <SubmitgPty>
+                <AnyBIC>
+                    <AnyBIC>BANKUS22</AnyBIC>
+                </AnyBIC>
+            </SubmitgPty>
+        </TradgSdId>
+        <CtrPtySdId>
+            <SubmitgPty>
+                <AnyBIC>
+                    <AnyBIC>FNSTAC11</AnyBIC>
+                </AnyBIC>
+            </SubmitgPty>
+        </CtrPtySdId>
+        <TradAmts>
+            <TradgSdBuyAmt>
+                <DgtlTknAmt>
+                    <!-- Assumed EURC DTI -->
+                    <Idr>R7H2JDXF3</Idr>
+                    <Unit>900.00</Unit>
+                </DgtlTknAmt>
+            </TradgSdBuyAmt>
+            <TradgSdSellAmt>
+                <DgtlTknAmt>
+                    <!-- Assumed USDC DTI -->
+                    <Idr>U8D4N2XJF</Idr>
+                    <Unit>1000.00</Unit>
+                </DgtlTknAmt>
+            </TradgSdSellAmt>
+            <SttlmDt>2024-05-04</SttlmDt>
+        </TradAmts>
+        <AgrdRate>
+            <XchgRate>0.9</XchgRate>
+        </AgrdRate>
+    </FXTradInstr>
+</Document>

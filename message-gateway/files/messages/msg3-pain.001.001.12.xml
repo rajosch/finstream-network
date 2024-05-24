@@ -2,11 +2,8 @@
 <Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.12">
     <CstmrCdtTrfInitn>
         <GrpHdr>
-            <MsgId>X-BA-001</MsgId>
+            <MsgId>BU-FN-001</MsgId>
             <CreDtTm>2024-05-04T12:38:00</CreDtTm>
-            <Authstn>
-                <Prtry>BA-signature</Prtry>
-            </Authstn>
             <NbOfTxs>1</NbOfTxs>
             <CtrlSum>1000.00</CtrlSum>
             <InitgPty>
@@ -14,7 +11,7 @@
             </InitgPty>
         </GrpHdr>
         <PmtInf>
-            <PmtInfId>X-BA-PAY001</PmtInfId>
+            <PmtInfId>BU-FN-PAY001</PmtInfId>
             <PmtMtd>TRF</PmtMtd>
             <NbOfTxs>1</NbOfTxs>
             <CtrlSum>1000.00</CtrlSum>
@@ -36,7 +33,7 @@
             </DbtrAcct>
             <DbtrAgt>
                 <FinInstnId>
-                    <BICFI>BANKUS33</BICFI>
+                    <BICFI>BANKUS22</BICFI>
                 </FinInstnId>
             </DbtrAgt>            
             <CdtTrfTxInf>

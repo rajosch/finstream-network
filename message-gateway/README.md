@@ -38,6 +38,10 @@ For Windows users, xmllint can be installed via:
 As taken from the [ISO20022 message definitions](https://www.iso20022.org/iso-20022-message-definitions).
 Note that this only provides the information relevant for the scope of the hackathon.
 
+### Assumptions
+
+- The `Digital Token Identifier (DTI)` for EURC is **R7H2JDXF3** and for USDC is **U8D4N2XJF**
+
 ### pain.001.001.12 - Customer Credit Transfer Initiation v12
 #### Definition
 The CustomerCreditTransferInitiation message is sent by the initiating party to the forwarding agent or debtor agent. 

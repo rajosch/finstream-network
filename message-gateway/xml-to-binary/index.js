@@ -1,6 +1,7 @@
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+const protobuf = require('protobufjs');
 const xml2js = require('xml2js');
 
 function validateXML(xmlPath, xsdPath) {
@@ -43,29 +44,72 @@ function saveErrorsToJson(errors) {
     console.log(`Errors saved to ${filename}`);
 }
 
+function xmlToProtobuf(xmlPath) {
+    // Load your .proto file
+    const root = protobuf.loadSync(path.join(__dirname, '..', 'output', 'pain.001.001.12.proto'));
+    const Document = root.lookupType('Document'); 
 
-// const protobuf = require('./pain_proto.js');
+    // Read the XML file
+    fs.readFile(xmlPath, 'utf-8', (err, data) => {
+        if (err) throw err;
 
-// function xmlToProtobuf(xmlPath) {
-//     const xmlData = fs.readFileSync(xmlPath, 'utf8');
-//     const parser = new xml2js.Parser();
-//     parser.parseString(xmlData, (err, result) => {
-//         if (err) {
-//             console.error('Error parsing XML:', err);
-//             return;
-//         }
-//         console.log('XML parsed successfully:', result);
+        // Parse the XML file
+        xml2js.parseString(data, { mergeAttrs: true, explicitArray: false }, (err, result) => {
+            if (err) throw err;
+
+            // Dynamically map the parsed XML to the structure expected by Protobuf
+            const message = mapXmlToProtobuf(Document, result.Document);
+
+            // Verify the message if needed
+            const errMsg = Document.verify(message);
+            if (errMsg) throw Error(errMsg);
+
+            // Create a new message
+            const messageInstance = Document.create(message);
+
+            // Encode the message to binary
+            const buffer = Document.encode(messageInstance).finish();
+
+            // Write the binary data to a file
+            // const outputPath = path.join(__dirname, '../output');
+            // if (!fs.existsSync(outputPath)) {
+            //     fs.mkdirSync(outputPath);
+            // }
+            // fs.writeFileSync(path.join(outputPath, 'output.bin'), buffer);
+            console.log('Binary file has been saved.');
+        });
+    });
+}
+
+function mapXmlToProtobuf(protoType, xmlObj) {
+    const message = {};
+
+    for (const [key, value] of Object.entries(xmlObj)) {
+        // console.log(protoType.fields)
+        const field = protoType.fields[key];
+        if(field) {
+            console.log(field.resolvedType)
+        }else {
+            console.warn(`Warning: Field ${key} not found in Protobuf definition`);
+            continue;
+        }
+        // if (field === null) {
+        // }
         
-//         // Here you would convert the JSON object `result` to a Protobuf object
-//         // This involves mapping JSON fields to your Protobuf schema
-//         // This is a placeholder for conversion logic
-//     });
-// }
+        // if (typeof value === 'object' && !Array.isArray(value)) {
+        //     message[key] = mapXmlToProtobuf(field.resolvedType, value);
+        // } else {
+        //     message[key] = value;
+        // }
+    }
 
-const xmlPath = path.join(__dirname, '..', 'files/messages/pain.001.001.12', 'pain.001.001.12.xml');
-const xsdPath = path.join(__dirname, '..', 'files/messages/pain.001.001.12', 'pain.001.001.12.xsd');
+    return message;
+}
 
-if (validateXML(xmlPath, xsdPath)) {
-    console.log("Start XML to Protobuff");
-    // xmlToProtobuf(xmlPath);  
+const xmlPath = path.join(__dirname, '..', 'files/messages', 'msg4-pain.001.001.12.xml');
+const xsdPath = path.join(__dirname, '..', 'files/definitions', 'pain.001.001.12.xsd');
+
+if (validateXML(xmlPath, xsdPath).valid) {
+    console.log("Start XML to Protobuf");
+    // xmlToProtobuf(xmlPath);
 }
