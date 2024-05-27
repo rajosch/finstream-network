@@ -4,6 +4,14 @@ const path = require('path');
 const protobuf = require('protobufjs');
 const xml2js = require('xml2js');
 
+const msgFiles = [
+    'pain.001.001.12',
+    'fxtr.014.001.05',
+    'pain.001.001.12',
+    'pain.001.001.12',
+    'pacs.002.001.14',
+];
+
 function validateXML(xmlPath, xsdPath) {
     try {
         const result = execSync(`xmllint --noout --schema ${xsdPath} ${xmlPath}`);
@@ -44,72 +52,69 @@ function saveErrorsToJson(errors) {
     console.log(`Errors saved to ${filename}`);
 }
 
-function xmlToProtobuf(xmlPath) {
-    // Load your .proto file
-    const root = protobuf.loadSync(path.join(__dirname, '..', 'output', 'pain.001.001.12.proto'));
-    const Document = root.lookupType('Document'); 
+function xmlToProtobuf(xmlPath, protoPath, messageName) {
+    // Load the protobuf schema
+    const root = protobuf.loadSync(protoPath);
+    const Document = root.lookupType('Document');
 
-    // Read the XML file
-    fs.readFile(xmlPath, 'utf-8', (err, data) => {
+    const parser = new xml2js.Parser();
+
+    fs.readFile(xmlPath, (err, data) => {
         if (err) throw err;
 
-        // Parse the XML file
-        xml2js.parseString(data, { mergeAttrs: true, explicitArray: false }, (err, result) => {
+        parser.parseString(data, (err, result) => {
             if (err) throw err;
 
-            // Dynamically map the parsed XML to the structure expected by Protobuf
-            const message = mapXmlToProtobuf(Document, result.Document);
+            // Function to construct the object based on XML structure
+            const constructObject = (xmlObj) => {
+                const resultObj = {};
+                for (let key in xmlObj) {
+                    if (key !== '$') {
+                        if (Array.isArray(xmlObj[key]) && typeof xmlObj[key][0] === 'object') {
+                            resultObj[key] = constructObject(xmlObj[key][0]);
+                        } else if (Array.isArray(xmlObj[key])) {
+                            resultObj[key] = xmlObj[key][0];
+                        } else {
+                            resultObj[key] = xmlObj[key];
+                        }
+                    }
+                }
+                return resultObj;
+            };
 
-            // Verify the message if needed
-            const errMsg = Document.verify(message);
-            if (errMsg) throw Error(errMsg);
+            // Construct the document object dynamically
+            const document = constructObject(result.Document);
+            console.log("Document Message:", JSON.stringify(document, null, 2));
 
-            // Create a new message
-            const messageInstance = Document.create(message);
+            // Create a new Document message
+            const message = Document.create(document);
 
-            // Encode the message to binary
-            const buffer = Document.encode(messageInstance).finish();
+            console.log("Message:", JSON.stringify(message, null, 2));
 
-            // Write the binary data to a file
-            // const outputPath = path.join(__dirname, '../output');
-            // if (!fs.existsSync(outputPath)) {
-            //     fs.mkdirSync(outputPath);
-            // }
-            // fs.writeFileSync(path.join(outputPath, 'output.bin'), buffer);
-            console.log('Binary file has been saved.');
+            // Encode the message to a .bin file
+            const buffer = Document.encode(message).finish();
+            console.log(buffer.toString())
+            fs.writeFile(`../output/${messageName}.bin`, buffer, (err) => {
+                if (err) {
+                    console.error(`Error writing binary file: ${err}`);
+                } else {
+                    console.log('Successfully created ../output/example.bin');
+                }
+            });
+            console.log('XML converted to .bin successfully.');
         });
     });
 }
 
-function mapXmlToProtobuf(protoType, xmlObj) {
-    const message = {};
 
-    for (const [key, value] of Object.entries(xmlObj)) {
-        // console.log(protoType.fields)
-        const field = protoType.fields[key];
-        if(field) {
-            console.log(field.resolvedType)
-        }else {
-            console.warn(`Warning: Field ${key} not found in Protobuf definition`);
-            continue;
-        }
-        // if (field === null) {
-        // }
-        
-        // if (typeof value === 'object' && !Array.isArray(value)) {
-        //     message[key] = mapXmlToProtobuf(field.resolvedType, value);
-        // } else {
-        //     message[key] = value;
-        // }
+for(index in msgFiles) {
+    const xmlPath = path.join(__dirname, '..', 'files/messages', 'msg' + index + '-' + msgFiles[index] + '.xml');
+    const xsdPath = path.join(__dirname, '..', 'files/definitions', msgFiles[index] + '.xsd');
+    const protoPath = path.join(__dirname, '..', 'files/protobuf', msgFiles[index] + '.proto');
+
+    if (validateXML(xmlPath, xsdPath).valid) {
+        xmlToProtobuf(xmlPath, protoPath, 'msg' + index + '-' + msgFiles[index]);
     }
-
-    return message;
 }
 
-const xmlPath = path.join(__dirname, '..', 'files/messages', 'msg4-pain.001.001.12.xml');
-const xsdPath = path.join(__dirname, '..', 'files/definitions', 'pain.001.001.12.xsd');
 
-if (validateXML(xmlPath, xsdPath).valid) {
-    console.log("Start XML to Protobuf");
-    // xmlToProtobuf(xmlPath);
-}

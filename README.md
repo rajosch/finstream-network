@@ -6,8 +6,10 @@
 
 - [ ] XML to Protobuf parser
   - [X] validate ISO20022 XML message
-  - [ ] create all of the sample XML messages for the PoC
-  - [ ] hardoced parsers (.proto and xmlToBin) for XML messages
+  - [X] create all of the sample XML messages for the PoC
+  - [X] hardcode .proto files for xml messages
+  - [x] xmlToBin parser
+  - [ ] binToXml parser
   - [ ] general .xsd to .proto translator
   - [ ] geleral .xml to binary parser
 - [ ] Message storage
