@@ -55,7 +55,7 @@ message DbtrAcct {
 }
 
 message Id {
-  string Iban = 1;
+  string IBAN = 1;
 }
 
 message DbtrAgt {
@@ -63,7 +63,7 @@ message DbtrAgt {
 }
 
 message FinInstnId {
-  string Bicfi = 1;
+  string BICFI = 1;
 }
 
 message CdtTrfTxInf {

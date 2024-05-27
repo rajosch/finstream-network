@@ -9,9 +9,8 @@
   - [X] create all of the sample XML messages for the PoC
   - [X] hardcode .proto files for xml messages
   - [x] xmlToBin parser
-  - [ ] binToXml parser
-  - [ ] general .xsd to .proto translator
-  - [ ] geleral .xml to binary parser
+  - [x] binToXml parser
+  - [ ] general .xsd to .proto translator (optional)
 - [ ] Message storage
   - [ ] `hybrid encryption`for binary ISO20022 messages
   - [ ] IPFS

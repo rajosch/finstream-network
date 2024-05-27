@@ -69,14 +69,34 @@ function xmlToProtobuf(xmlPath, protoPath, messageName) {
             const constructObject = (xmlObj) => {
                 const resultObj = {};
                 for (let key in xmlObj) {
+                    console.log(key)
                     if (key !== '$') {
                         if (Array.isArray(xmlObj[key]) && typeof xmlObj[key][0] === 'object') {
-                            resultObj[key] = constructObject(xmlObj[key][0]);
+                            if (key === 'Amt') {
+                                resultObj[key] = constructAmtObject(xmlObj[key][0]);
+                            } else {
+                                resultObj[key] = constructObject(xmlObj[key][0]);
+                            }
                         } else if (Array.isArray(xmlObj[key])) {
                             resultObj[key] = xmlObj[key][0];
                         } else {
                             resultObj[key] = xmlObj[key];
                         }
+                    }
+                }
+                return resultObj;
+            };
+
+            const constructAmtObject = (xmlObj) => {
+                const resultObj = {};
+                for (let key in xmlObj) {
+                    if (key === 'InstdAmt' && typeof xmlObj[key][0] === 'object') {
+                        resultObj['InstdAmt'] = parseFloat(xmlObj[key][0]._);
+                        if (xmlObj[key][0].$ && xmlObj[key][0].$.Ccy) {
+                            resultObj['Ccy'] = xmlObj[key][0].$.Ccy;
+                        }
+                    } else {
+                        resultObj[key] = xmlObj[key];
                     }
                 }
                 return resultObj;
@@ -98,7 +118,7 @@ function xmlToProtobuf(xmlPath, protoPath, messageName) {
                 if (err) {
                     console.error(`Error writing binary file: ${err}`);
                 } else {
-                    console.log('Successfully created ../output/example.bin');
+                    console.log(`Successfully created ../output/${messageName}.bin`);
                 }
             });
             console.log('XML converted to .bin successfully.');
