@@ -16,7 +16,7 @@ const sampleFilePath = path.join(__dirname, '../files/binary/sample.bin');
 const encryptedFilePath = path.join(__dirname, '../output/sample.json');
 
 // Encryption function
-async function encryptFile(filePath, wallets) {
+async function encryptFile(filePath, wallets, parent) {
     // Generate symmetric key
     const symmetricKey = await getRandomBytes(16);
     // Generate Initilization Vector
@@ -36,11 +36,17 @@ async function encryptFile(filePath, wallets) {
         walletEncryptions.push(walletData);
     }
 
+    // Hash message for merkle proof
+    const messageHash = ethers.keccak256(data);
+
     // Save the encrypted data and keys
     const output = {
         encryptedData: encryptedData.toString('hex'),
         symmetricKey: walletEncryptions,
-        iv: iv.toString('hex')
+        iv: iv.toString('hex'),
+        messageHash: messageHash,
+        ticketId: 'exampleId', // ID of the ticket on the blockchain
+        parent: parent // Used to recreate the Merkle proof. Null at the root
     };
     fs.writeFileSync(encryptedFilePath, JSON.stringify(output, null, 2));
 
@@ -114,7 +120,7 @@ async function encryptSymmetricKey(key, privateKey) {
 (async () => {
     // Encrypt the sample file
     try {
-        await encryptFile(sampleFilePath, [bankA, bankB, gateway]);
+        await encryptFile(sampleFilePath, [bankA, bankB, gateway], null);
     } catch (error) {
         console.error('Encryption failed:', error);
     }
