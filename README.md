@@ -12,7 +12,7 @@
   - [x] binToXml parser
   - [ ] general .xsd to .proto translator (optional)
 - [ ] Message storage
-  - [ ] `hybrid encryption`for binary ISO20022 messages
+  - [x] multi part encryptor for binary ISO20022 messages
   - [ ] IPFS
 - [ ] Chainlink Automation - Automatic TX calls (?)
 - [ ] Smart Contracts
