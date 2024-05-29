@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pacs.002.001.14">
+    <FIoFIPmtStsRpt>
+        <GrpHdr>
+            <CreDtTm>2024-05-04T12:45:00</CreDtTm>
+        </GrpHdr>
+        <OrgnlGrpInfAndSts>
+            <OrgnlMsgId>S-BU-001</OrgnlMsgId>
+            <OrgnlMsgNmId>pain.001.001.12</OrgnlMsgNmId>
+        </OrgnlGrpInfAndSts>
+        <TxInfAndSts>
+            <OrgnlEndToEndId>abc123</OrgnlEndToEndId>
+            <MsgId>BANKUS33-20240504-124500-001</MsgId>
+            <TxSts>ACCP</TxSts>
+        </TxInfAndSts>
+    </FIoFIPmtStsRpt>
+</Document>

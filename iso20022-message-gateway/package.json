@@ -1,5 +1,5 @@
 {
-  "name": "xml-to-binary",
+  "name": "iso20022-message-gateway",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -8,9 +8,5 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "protobufjs": "^7.2.6",
-    "xml2js": "^0.6.2"
-  }
+  "license": "ISC"
 }

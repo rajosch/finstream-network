@@ -1,16 +1,20 @@
 {
-  "name": "binary-to-xml",
+  "name": "xml-processor",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "dependencies": {
+  "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "child_process": "^1.0.2",
+    "jest": "^29.7.0",
     "protobufjs": "^7.3.0",
+    "ts-jest": "^29.1.4",
     "xml2js": "^0.6.2"
   }
 }
