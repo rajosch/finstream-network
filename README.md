@@ -14,18 +14,20 @@
 - [ ] Message storage & validation
 
   - [X] multi part encrypter for binary ISO20022 messages
-  - [ ] Merkle tree validator (off-chain)
+  - [X] Merkle tree validator (off-chain)
   - [ ] IPFS
 - [ ] Smart Contracts
 
   - [X] architecture
+  - [ ] adjust `MsgTicket` smart contract to handle merkle-trees correctly (openzeppelin)
   - [ ] improve smart contract access rights `Role-Based Access Control (RBAC)`
   - [ ] Chainlink Functions - call DEX for optimal conversion rate
   - [ ] mock-up USDC & EURC contracts
+  - [ ] improve `Treasury`smart contract
   - [ ] testing
 - [ ] Chainlink Automation - Automatic TX calls (?)
 - [ ] Bank Frontend
-- [ ] Bank Backend
+- [ ] Gateway Frontend
 
 ### Future Work
 
