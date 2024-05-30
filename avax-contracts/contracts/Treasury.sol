@@ -2,18 +2,21 @@
 pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 
 /**
  * @title Treasury
  * @dev Treasury contract to handle ERC-20 token transfers and liquidity management.
  */
-contract Treasury is Ownable {
+contract Treasury is AccessControl {
     mapping(address => bool) public supportedTokens;
     mapping(address => mapping(address => AggregatorV3Interface)) public priceFeeds;
     mapping(address => mapping(address => uint256)) public borrowedAmounts;
-    mapping(address => uint256) public maxLiquidityPerUser;
+    mapping(address => mapping(address => uint256)) public maxLiquidityPerUser;
+
+    bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
+    bytes32 public constant CONTROLLER_ROLE = keccak256("CONTROLLER_ROLE");
 
     /**
      * @dev Emitted when a token is added to the supported list.
@@ -75,13 +78,17 @@ contract Treasury is Ownable {
      */
     event LiquidityRepaid(address indexed borrower, address indexed token, uint256 amount);
 
-    constructor() {}
+    constructor() {
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(MANAGER_ROLE, msg.sender);
+        _grantRole(CONTROLLER_ROLE, msg.sender);
+    }
 
     /**
      * @dev Function to add a token to the supported list.
      * @param token The address of the token to be added.
      */
-    function addSupportedToken(address token) public onlyOwner {
+    function addSupportedToken(address token) public onlyRole(MANAGER_ROLE) {
         supportedTokens[token] = true;
         emit TokenAdded(token);
     }
@@ -90,7 +97,7 @@ contract Treasury is Ownable {
      * @dev Function to remove a token from the supported list.
      * @param token The address of the token to be removed.
      */
-    function removeSupportedToken(address token) public onlyOwner {
+    function removeSupportedToken(address token) public onlyRole(MANAGER_ROLE) {
         supportedTokens[token] = false;
         emit TokenRemoved(token);
     }
@@ -101,7 +108,7 @@ contract Treasury is Ownable {
      * @param toToken The address of the token to exchange to.
      * @param priceFeed The address of the Chainlink price feed aggregator.
      */
-    function setPriceFeed(address fromToken, address toToken, address priceFeed) public onlyOwner {
+    function setPriceFeed(address fromToken, address toToken, address priceFeed) public onlyRole(MANAGER_ROLE) {
         priceFeeds[fromToken][toToken] = AggregatorV3Interface(priceFeed);
     }
 
@@ -113,7 +120,7 @@ contract Treasury is Ownable {
      * @param amount The amount of tokens to be transferred.
      * @param client The address of the client on whose behalf the transfer is made.
      */
-    function transferTokens(address token, address from, address to, uint256 amount, address client) public onlyOwner {
+    function transferTokens(address token, address from, address to, uint256 amount, address client) public onlyRole(CONTROLLER_ROLE) {
         require(supportedTokens[token], "Token not supported");
 
         // Check if the client holds enough of the token
@@ -125,7 +132,7 @@ contract Treasury is Ownable {
             uint256 tokenBalance = IERC20(token).balanceOf(address(this));
             require(tokenBalance >= amount, "Insufficient liquidity in the Treasury");
 
-            uint256 maxBorrowAmount = maxLiquidityPerUser[client];
+            uint256 maxBorrowAmount = maxLiquidityPerUser[client][token];
             require(amount <= maxBorrowAmount, "Borrow amount exceeds allowed limit");
 
             // Transfer tokens using contract liquidity
@@ -144,7 +151,7 @@ contract Treasury is Ownable {
      * @param token The address of the token to add.
      * @param amount The amount of tokens to add.
      */
-    function addLiquidity(address token, uint256 amount) public onlyOwner {
+    function addLiquidity(address token, uint256 amount) public onlyRole(MANAGER_ROLE) {
         require(supportedTokens[token], "Token not supported");
         IERC20(token).transferFrom(msg.sender, address(this), amount);
         emit LiquidityAdded(token, amount);
@@ -155,7 +162,7 @@ contract Treasury is Ownable {
      * @param token The address of the token to remove.
      * @param amount The amount of tokens to remove.
      */
-    function removeLiquidity(address token, uint256 amount) public onlyOwner {
+    function removeLiquidity(address token, uint256 amount) public onlyRole(MANAGER_ROLE) {
         require(supportedTokens[token], "Token not supported");
         IERC20(token).transfer(msg.sender, amount);
         emit LiquidityRemoved(token, amount);
@@ -183,7 +190,7 @@ contract Treasury is Ownable {
      * @param minAmountOut The minimum amount of tokens to receive from the exchange.
      * @param client The address of the client on whose behalf the exchange is made.
      */
-    function exchangeTokens(address fromToken, address toToken, uint256 amountIn, uint256 minAmountOut, address client) public onlyOwner {
+    function exchangeTokens(address fromToken, address toToken, uint256 amountIn, uint256 minAmountOut, address client) public onlyRole(CONTROLLER_ROLE) {
         require(supportedTokens[fromToken], "From token not supported");
         require(supportedTokens[toToken], "To token not supported");
 
@@ -212,7 +219,7 @@ contract Treasury is Ownable {
             require(fromTokenBalance >= amountIn, "Insufficient fromToken liquidity in the Treasury");
             require(toTokenBalance >= amountOut, "Insufficient toToken liquidity in the Treasury");
 
-            uint256 maxBorrowAmount = maxLiquidityPerUser[client];
+            uint256 maxBorrowAmount = maxLiquidityPerUser[client][fromToken];
             require(amountOut <= maxBorrowAmount, "Borrow amount exceeds allowed limit");
 
             // Transfer tokens using contract liquidity
@@ -233,7 +240,7 @@ contract Treasury is Ownable {
      * @param amount The amount of tokens to repay.
      * @param client The address of the client repaying the borrowed tokens.
      */
-    function repayBorrowedTokens(address token, uint256 amount, address client) public onlyOwner {
+    function repayBorrowedTokens(address token, uint256 amount, address client) public onlyRole(CONTROLLER_ROLE) {
         require(supportedTokens[token], "Token not supported");
         require(borrowedAmounts[client][token] >= amount, "Repay amount exceeds borrowed amount");
 
@@ -251,7 +258,7 @@ contract Treasury is Ownable {
      * @param token The address of the token.
      * @param amount The maximum amount that can be borrowed.
      */
-    function setMaxLiquidityPerUser(address user, address token, uint256 amount) public onlyOwner {
-        maxLiquidityPerUser[user] = amount;
+    function setMaxLiquidityPerUser(address user, address token, uint256 amount) public onlyRole(MANAGER_ROLE) {
+        maxLiquidityPerUser[user][token] = amount;
     }
 }

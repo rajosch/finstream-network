@@ -69,7 +69,7 @@ function validateTree(tree) {
  */
 function calculateLeafHash(tree, leaf) {
     return tree.leafHash(leaf);
-  }
+}
 
 module.exports = {
   buildMerkleTree,

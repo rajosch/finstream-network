@@ -2,7 +2,7 @@
 pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 
 /**
  * @title MsgTicket
@@ -11,9 +11,11 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  * The content of these messages is stored encrypted off-chain.
  * The tokens are soulbound and cannot be transferred.
  */
-contract MsgTicket is ERC721, Ownable {
+contract MsgTicket is ERC721, AccessControl {
     uint256 private _tokenIdCounter; 
     mapping(uint256 => bytes32) private _merkleRoots; 
+
+    bytes32 public constant CONTROLLER_ROLE = keccak256("CONTROLLER_ROLE");
 
     /**
      * @dev Emitted when a new MsgTicket token is minted.
@@ -31,14 +33,17 @@ contract MsgTicket is ERC721, Ownable {
      */
     event MerkleRootUpdated(uint256 indexed tokenId, bytes32 indexed merkleRoot, uint256 blockNumber);
 
-    constructor() ERC721("MsgTicket", "MTKT") {}
+    constructor() ERC721("MsgTicket", "MTKT") {
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(CONTROLLER_ROLE, msg.sender);
+    }
 
     /**
      * @dev Function to mint a new MsgTicket token.
      * @param to The address to which the token will be minted.
      */
-    function mintTicket(address to) public onlyOwner {
-        uint256 tokenId = _tokenIdCounter; 
+    function mintTicket(address to) public onlyRole(CONTROLLER_ROLE) returns (uint256 tokenId) {
+        tokenId = _tokenIdCounter; 
         _tokenIdCounter += 1; 
         _safeMint(to, tokenId); 
 
@@ -50,8 +55,10 @@ contract MsgTicket is ERC721, Ownable {
      * @param tokenId The ID of the token whose Merkle root is to be updated.
      * @param merkleRoot The new Merkle root to be associated with the token.
      */
-    function updateMerkleRoot(uint256 tokenId, bytes32 merkleRoot) public onlyOwner {
-        require(_exists(tokenId), "ERC721: token does not exist"); 
+    function updateMerkleRoot(uint256 tokenId, bytes32 merkleRoot) public onlyRole(CONTROLLER_ROLE) {
+        if(ownerOf(tokenId) == address(0)) {
+            revert ERC721NonexistentToken(tokenId);
+        }
         _merkleRoots[tokenId] = merkleRoot; 
 
         emit MerkleRootUpdated(tokenId, merkleRoot, block.number);
@@ -65,7 +72,9 @@ contract MsgTicket is ERC721, Ownable {
      * @return bool Returns true if the message is part of the Merkle tree, false otherwise.
      */
     function verifyMessage(uint256 tokenId, bytes32 leaf, bytes32[] memory proof) public view returns (bool) {
-        require(_exists(tokenId), "ERC721: token does not exist"); 
+        if(ownerOf(tokenId) == address(0)) {
+            revert ERC721NonexistentToken(tokenId);
+        }
         bytes32 merkleRoot = _merkleRoots[tokenId]; 
         return _verify(leaf, proof, merkleRoot); 
     }
@@ -96,9 +105,11 @@ contract MsgTicket is ERC721, Ownable {
     }
 
     /**
-     * @dev Override the transfer function to make the tokens soulbound (non-transferable).
+     * @dev See {IERC165-supportsInterface}.
      */
-    function _transfer(address from, address to, uint256 tokenId) internal override {
-        require(false, "MsgTicket: Tokens are soulbound and cannot be transferred");
+    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721, AccessControl) returns (bool) {
+        return ERC721.supportsInterface(interfaceId) || AccessControl.supportsInterface(interfaceId);
     }
+
+    // TODO Should be Soulbound
 }

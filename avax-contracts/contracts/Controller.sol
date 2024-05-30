@@ -42,7 +42,7 @@ contract Controller is Ownable {
     event TreasuryUpdated(address indexed oldAddress, address indexed newAddress);
 
 
-    constructor(address _msgTicket, address _treasury) {
+    constructor(address _msgTicket, address _treasury, address initialOwner) Ownable(initialOwner) {
         msgTicket = MsgTicket(_msgTicket);
         treasury = Treasury(_treasury);
     }
@@ -152,9 +152,9 @@ contract Controller is Ownable {
     /**
      * @dev Function to initiate a ticket set.
      */
-    function initiateTicket() {
+    function initiateTicket() public returns (uint256 ticketId) {
         require(clients[msg.sender], "Sender is not a registered client");
-        uint256 ticketId = msgTicket.mintTicket(msg.sender);
+        ticketId = msgTicket.mintTicket(msg.sender);
     }
 
     /**

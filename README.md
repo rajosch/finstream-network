@@ -20,11 +20,14 @@
 
   - [X] architecture
   - [ ] adjust `MsgTicket` smart contract to handle merkle-trees correctly (openzeppelin)
-  - [ ] improve smart contract access rights `Role-Based Access Control (RBAC)`
-  - [ ] Chainlink Functions - call DEX for optimal conversion rate
-  - [ ] mock-up USDC & EURC contracts
+  - [X] improve smart contract access rights `Role-Based Access Control (RBAC)`
+  - [X] mock-up USDC & EURC contracts
   - [ ] improve `Treasury`smart contract
+    - [ ] Implement the **Chainlink Price Feed** for up to date price conversion
+  - [ ] Imporve Controller smart contract
+    - [ ] Implement **Chainlink Automation** to automatically react to pre-defined conditions
   - [ ] testing
+  - [ ] Deploy to Fuji Testnet
 - [ ] Chainlink Automation - Automatic TX calls (?)
 - [ ] Bank Frontend
 - [ ] Gateway Frontend
