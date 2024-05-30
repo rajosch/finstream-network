@@ -174,12 +174,12 @@ contract Treasury is AccessControl {
      * @param toToken The address of the token to exchange to.
      * @return The latest price.
      */
-    function getLatestPrice(address fromToken, address toToken) public view returns (uint256) {
+    function getLatestPrice(address fromToken, address toToken) public view returns (uint256, uint8) {
         AggregatorV3Interface priceFeed = priceFeeds[fromToken][toToken];
         require(address(priceFeed) != address(0), "Price feed not set for this token pair");
 
         (, int price, , , ) = priceFeed.latestRoundData();
-        return uint256(price);
+        return (uint256(price), priceFeed.decimals());
     }
 
     /**
@@ -195,10 +195,10 @@ contract Treasury is AccessControl {
         require(supportedTokens[toToken], "To token not supported");
 
         // Get the latest exchange rate from Chainlink
-        uint256 exchangeRate = getLatestPrice(fromToken, toToken);
+        (uint256 exchangeRate, uint8 decimals) = getLatestPrice(fromToken, toToken);
 
         // Calculate the amount of tokens to receive
-        uint256 amountOut = (amountIn * exchangeRate) / (10 ** 18);
+        uint256 amountOut = (amountIn * exchangeRate) / (10 ** decimals);
 
         require(amountOut >= minAmountOut, "Insufficient output amount");
 

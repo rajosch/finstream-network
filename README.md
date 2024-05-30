@@ -27,6 +27,7 @@
   - [ ] Imporve Controller smart contract
     - [ ] Implement **Chainlink Automation** to automatically react to pre-defined conditions
   - [ ] testing
+  - [ ] Since there is no EUR/USD price feed on the Fuji Testnet LINK/AVAX will acts as a price feed place holder for them
   - [ ] Deploy to Fuji Testnet
 - [ ] Chainlink Automation - Automatic TX calls (?)
 - [ ] Bank Frontend

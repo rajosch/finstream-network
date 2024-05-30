@@ -111,8 +111,9 @@ describe("Treasury", function () {
 
   describe("Exchanging Tokens", function () {
     it("Should allow the controller to exchange tokens on behalf of a client", async function () {
-      const { treasury, tokenA, tokenB, controller, user, otherAccount } = await loadFixture(deployTreasuryFixture);
+      const { treasury, tokenA, tokenB, controller, user, otherAccount, manager } = await loadFixture(deployTreasuryFixture);
 
+      await treasury.connect(manager).addSupportedToken(tokenA);
       await tokenA.connect(user).approve(treasury, ethers.parseUnits("1000", 18));
       await treasury.connect(controller).exchangeTokens(tokenA, tokenA, ethers.parseUnits("500", 18), ethers.parseUnits("100", 18), user.address);
 
