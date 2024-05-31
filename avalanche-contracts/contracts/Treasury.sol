@@ -238,18 +238,17 @@ contract Treasury is AccessControl {
      * @dev Repay borrowed tokens.
      * @param token The address of the token to repay.
      * @param amount The amount of tokens to repay.
-     * @param client The address of the client repaying the borrowed tokens.
      */
-    function repayBorrowedTokens(address token, uint256 amount, address client) public onlyRole(CONTROLLER_ROLE) {
+    function repayBorrowedTokens(address token, uint256 amount) public {
         require(supportedTokens[token], "Token not supported");
-        require(borrowedAmounts[client][token] >= amount, "Repay amount exceeds borrowed amount");
+        require(borrowedAmounts[msg.sender][token] >= amount, "Repay amount exceeds borrowed amount");
 
         // Transfer tokens back to the contract
-        require(IERC20(token).transferFrom(client, address(this), amount), "Repay token transfer failed");
+        require(IERC20(token).transferFrom(msg.sender, address(this), amount), "Repay token transfer failed");
 
         // Update borrowed amount
-        borrowedAmounts[client][token] -= amount;
-        emit LiquidityRepaid(client, token, amount);
+        borrowedAmounts[msg.sender][token] -= amount;
+        emit LiquidityRepaid(msg.sender, token, amount);
     }
 
     /**

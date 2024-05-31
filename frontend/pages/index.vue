@@ -35,7 +35,6 @@
                 <div class="container mx-auto flex justify-between items-center px-4">
                     <h1 class="text-2xl font-bold">Chainlink - Block Magic PoC</h1>
                     <div>
-                        <label for="component-select" class="mr-2">Switch Component:</label>
                         <select id="component-select" v-model="selectedComponent" @change="switchComponent" class="bg-gray-700 text-white p-2 rounded">
                             <option value="BankUSA">Bank USA</option>
                             <option value="BankEU">Bank EU</option>

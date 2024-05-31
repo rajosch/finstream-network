@@ -139,7 +139,7 @@ describe("Treasury", function () {
       await treasury.connect(controller).transferTokens(tokenA, treasury, user.address, ethers.parseUnits("500", 18), user.address);
 
       await tokenA.connect(user).approve(treasury, ethers.parseUnits("500", 18));
-      await treasury.connect(controller).repayBorrowedTokens(tokenA, ethers.parseUnits("500", 18), user.address);
+      await treasury.connect(user).repayBorrowedTokens(tokenA, ethers.parseUnits("500", 18));
 
       expect(await treasury.borrowedAmounts(user.address, tokenA)).to.equal(0);
     });
