@@ -1,0 +1,58 @@
+<template>
+    <div class="bg-slate-700 text-gray-300">
+        <header class="bg-slate-800 text-gray-300 fixed top-0 w-full z-50 transition-all duration-300" :class="{'bg-opacity-50': isTransparent}">
+            <nav class="container mx-auto px-4 py-2 flex justify-between items-center">
+                <NuxtLink to="/"><div class="text-2xl font-bold">Finstream</div></NuxtLink>
+                <ul class="flex space-x-4">
+                    <NuxtLink to="#about" class="opacity-75 hover:opacity-100">
+                        Learn More
+                    </NuxtLink>
+                    <NuxtLink to="#poc" class="opacity-75 hover:opacity-100">
+                        Try PoC
+                    </NuxtLink>
+                </ul>
+                <ul class="flex space-x-4">
+                        <NuxtLink
+                        to="https://github.com/rajosch/finstream-blokmagic"
+                        target="_blank"
+                        >
+                        <img
+                            src="/img/logo/github.svg"
+                            class="border rounded-full h-7 w-7 p-1 hover:opacity-100 opacity-70"
+                        >
+                        </NuxtLink>
+                </ul>
+            </nav>
+        </header>
+        <main>
+            <NuxtPage />
+        </main>
+    </div>
+</template>
+
+<script>
+export default {
+    data() {
+        return {
+            isTransparent: false,
+        };
+    },
+    mounted() {
+        window.addEventListener('scroll', this.handleScroll);
+    },
+    beforeDestroy() {
+        window.removeEventListener('scroll', this.handleScroll);
+    },
+    methods: {
+        handleScroll() {
+            this.isTransparent = window.scrollY > 50;
+        },
+    },
+};
+</script>
+
+<style>
+    html {
+        scroll-behavior: smooth;
+    }
+</style>
