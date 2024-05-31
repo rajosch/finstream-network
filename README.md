@@ -13,11 +13,29 @@
 
   - [X] multi part encrypter for binary ISO20022 messages
   - [X] Merkle tree validator (off-chain)
-  - [ ] add database to save information
-  - [ ] money in bank accounts
-  - [ ] how much the banks owe the contract
-  - [ ] transactions
-  - [ ] message information, etc
+  - [ ] local storage
+    - [ ] Bank Objects (Bank USA & Bank EUR)
+      - [X] Customer Objects
+        - [X] ID
+        - [X] Name
+        - [X] Money in bank account
+      - [ ] Transactions (array of objects)
+        - [X] ID
+        - [X] Amount
+        - [ ] Messages (array of objects)
+          - [ ] encrypted data
+          - [ ] symmetric key (array of objects)
+            - [ ] encrypted key
+            - [ ] iv
+            - [ ] salt
+            - [ ] publicKey
+          - [ ] iv
+          - [ ] messageHash
+          - [ ] ticketId
+          - [ ] parent
+        - [ ] Status
+  - [X] Create local storage when starting the page
+  - [ ] Update local storage when appropriate
 - [ ] Smart Contracts
 
   - [X] architecture
@@ -29,11 +47,20 @@
     - [X] Implement the **Chainlink Price Feed** for up to date price conversion
   - [ ] testing
 
-    - [ ] setup a local node
-    - [ ] run a test script
-    - [ ] integrate into frontend
+    - [ ] hardhat tests
+  - [ ] integrate into frontend
   - [ ] Since there is no EUR/USD price feed on the Fuji Testnet LINK/AVAX will acts as a price feed place holder for them
+  - [ ] to simplify things both bank usa and bank europe have a considerable amount of liquidity they can use
   - [ ] Deploy to Fuji Testnet
+- [ ] Gateway
+
+  - [ ] message creation
+  - [ ] message parsing
+  - [ ] message encrpytion
+  - [ ] create merke tree / update merkle tree
+  - [ ] mint ticket / update merkle tree
+  - [ ] return (updated) merkle tree
+  - [ ] read data
 - [ ] Frontend
 
   - [ ] UPDATE VIDEO ID!!!
