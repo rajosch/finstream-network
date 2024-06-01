@@ -1,4 +1,4 @@
-const {
+import {
     buildMerkleTree,
     createProof,
     verifyProof,
@@ -6,7 +6,7 @@ const {
     deserializeTree,
     validateTree,
     calculateLeafHash,
-  } = require('../src/index');
+  } from '../src/index';
   
   describe('Merkle Tree Tests', () => {
     const values = [['value1'], ['value2'], ['value3']];

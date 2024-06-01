@@ -127,14 +127,14 @@
 import { useBankStorage } from '@/composables/localStorage';
 
 export default {
-    setup() {
-        const { banks } = useBankStorage();
-        return { banks };
-    },
-    data() {
-        return {
-            selectedComponent: 'Bank USA',
-        };
-    },
+  setup() {
+    const { banks } = useBankStorage();
+    return { banks };
+  },
+  data() {
+    return {
+      selectedComponent: 'Bank USA',
+    };
+  },
 };
 </script>

@@ -1,9 +1,9 @@
-const { createMessage } = require('../src/index');
-const { validateXML, xmlToBin } = require("../../xml-processor/src");
-const { encryptFile } = require("../../multi-party-encrypter/src");
-const protobuf = require('protobufjs');
-const path = require('path');
-const fs = require('fs');
+import { createMessage } from '../src';
+import { encryptFile } from '../../multi-party-encrypter';
+import { validateXML, xmlToBin } from '../../xml-processor';
+import protobuf from 'protobufjs';
+import path from 'path';
+import fs from 'fs';
 
 jest.mock('../../xml-processor/src', () => ({
   validateXML: jest.fn(),

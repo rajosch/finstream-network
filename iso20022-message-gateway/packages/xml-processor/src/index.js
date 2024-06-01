@@ -1,8 +1,8 @@
-const { execSync } = require('child_process');
-const xml2js = require('xml2js');
-const fs = require('fs');
-const path = require('path');
-const os = require('os');
+import { execSync } from 'child_process';
+import xml2js from 'xml2js';
+import fs from 'fs';
+import path from 'path';
+import os from 'os';
 
 function validateXML(xmlContent, xsdContent) {
     const tempDir = os.tmpdir();

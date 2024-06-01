@@ -1,7 +1,7 @@
-const { ethers } = require('ethers');
-const { getRandomBytes } = require('ethereum-cryptography/random');
-const { encrypt, decrypt } = require('ethereum-cryptography/aes');
-const { pbkdf2 } = require('ethereum-cryptography/pbkdf2');
+import { ethers } from 'ethers';
+import { getRandomBytes } from 'ethereum-cryptography/random';
+import { encrypt, decrypt } from 'ethereum-cryptography/aes';
+import { pbkdf2 } from 'ethereum-cryptography/pbkdf2';
 
 
 async function encryptFile(data, wallets, parent, ticketId) {

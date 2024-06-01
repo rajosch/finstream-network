@@ -1,8 +1,8 @@
-const { encryptFile } = require("../../multi-party-encrypter/src");
-const { validateXML, xmlToBin } = require("../../xml-processor/src");
-const xmlbuilder = require('xmlbuilder');
+import { encryptFile } from "../../multi-party-encrypter";
+import { validateXML, xmlToBin } from "../../xml-processor";
+import xmlbuilder from 'xmlbuilder';
 
-async function createMessage(messageType, wallets, messageArgs, ticketId, xsdContent, root) {
+export async function createMessage(messageType, wallets, messageArgs, ticketId, xsdContent, root) {
   let message = null;
 
   if(messageType.localeCompare('pain.001.001.12') === 0) {
@@ -193,7 +193,3 @@ function createPacs00200114({
 
   return xml;
 }
-
-module.exports = {
-  createMessage
-};

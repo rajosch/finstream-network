@@ -2,7 +2,8 @@
   "name": "merkle-tree-validator",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/index.js",
+  "type": "module",
   "scripts": {
     "test": "jest"
   },
@@ -12,7 +13,16 @@
   "devDependencies": {
     "@openzeppelin/merkle-tree": "^1.0.6",
     "@types/jest": "^29.5.12",
+    "babel-jest": "^29.7.0",
     "jest": "^29.7.0",
-    "ts-jest": "^29.1.4"
+    "ts-jest": "^29.1.4",
+    "@babel/preset-env": "^7.16.11"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.js$": "babel-jest"
+    },
+    "moduleFileExtensions": ["js", "json", "jsx", "ts", "tsx", "node"],
+    "testEnvironment": "node"
   }
 }

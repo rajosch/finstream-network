@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+message Document {
+  FIToFIPmtStsRpt FIToFIPmtStsRpt = 1;
+}
+
+message FIToFIPmtStsRpt {
+  GrpHdr GrpHdr = 1;
+  OrgnlGrpInfAndSts OrgnlGrpInfAndSts = 2;
+  TxInfAndSts TxInfAndSts = 3;
+}
+
+message GrpHdr {
+  string MsgId = 1;
+  string CreDtTm = 2;
+}
+
+message OrgnlGrpInfAndSts {
+  string OrgnlMsgId = 1;
+  string OrgnlMsgNmId = 2;
+}
+
+message TxInfAndSts {
+  string OrgnlEndToEndId = 1;
+  string TxSts = 2;
+}

@@ -66,7 +66,7 @@
   - [ ] UPDATE VIDEO ID!!!
   - [ ] add information to about section (capabilities, reason, etc?)
   - [ ] add links to blockexplorer for contracts
-  - [ ] add wallets [alice, bob, charly, diana, bank-eu, bank-usa] (private keys 'oh schreck')
+  - [ ] add wallets [bank-eu, bank-usa] (private keys 'oh schreck')
   - [ ] add contract calls (ethers)
   - [ ] database write & read information
 

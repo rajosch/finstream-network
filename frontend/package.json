@@ -11,7 +11,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "multi-party-encrypter": "link:../iso20022-message-gateway/packages/multi-party-encrypter",
+    "gateway": "link:../iso20022-message-gateway/packages/gateway",
     "nuxt": "^3.11.2",
     "vue": "^3.4.27",
     "vue-router": "^4.3.2"
@@ -20,6 +20,8 @@
     "@heroicons/vue": "v1",
     "@nuxt/eslint-config": "^0.2.0",
     "@nuxtjs/tailwindcss": "^6.12.0",
-    "eslint": "^8.56.0"
+    "eslint": "^8.56.0",
+    "ethers": "^6.12.1",
+    "protobufjs": "^7.3.0"
   }
 }

@@ -147,6 +147,9 @@
 
 <script>
   import { useBankStorage } from '@/composables/localStorage';
+  import { createMessage } from 'gateway';
+  import { ethers } from 'ethers';
+  import { protobuf } from 'protobufjs';
 
   export default {
     props: {
@@ -156,13 +159,13 @@
       }
     },
     setup() {
-      const { banks, id, addTransaction, updateTransactionStatus, incrementId } = useBankStorage();
+      const { banks, id, addTransaction, updateTransactionStatus, addTransactionMessage } = useBankStorage();
       return {
         banks,
         id,
         addTransaction,
         updateTransactionStatus,
-        incrementId
+        addTransactionMessage
       }
     },
     data() {
@@ -198,68 +201,89 @@
         this.loggedIn = false;
       },
       async startTransaction() {
+
         if (this.transferAmount > 0 && this.transferAmount <= this.selectedUser.balance && this.transferRecipient.length !== 0) {
+          const euWallet = new ethers.Wallet(this.banks.bankEU.privateKey);
+          const usaWallet = new ethers.Wallet(this.banks.bankUSA.privateKey);
+          const gatewayWallet = new ethers.Wallet(this.banks.gateway.privateKey);
+          const wallets = [euWallet, usaWallet, gatewayWallet];
+
           // Initiate transaction
           this.selectedUser.balance -= this.transferAmount;
 
-          // 1. Create 1st pain message
+          // 0. Mint transaction ticket
+          const ticketId = 'ticketID'; // TODO contract call await controller.mintTicket(...)
+          let messageArgs = {
 
-          // 2. Validate message
+          };
+          const xsdPath = path.join(__dirname, '../../../../files/definitions', `${messageType}.xsd`);
+          const protoPath = path.join(__dirname, '../../../../files/protobuf', `${messageType}.proto`);
 
-          // 3. XML to binary &  Encrypt message
+          const root = protobuf.loadSync(protoPath);
+          const xsdContent = fs.readFileSync(xsdPath);
+
+          let message = await createMessage('pain.001.001.12', wallets, messageArgs, ticketId, );
 
           // 4. Create transaction
           const transaction = {
-            id: Date.now(),
+            id: ticketId,
             amount: this.transferAmount,
             recipient: this.transferRecipient,
             sender: this.selectedUser,
             status: 'initiated',
-            messages: []
+            messages: [message]
           };
 
           // 5. Add transaction to 'data base'
           this.addTransaction(this.selectedBankName, transaction);
 
-          // 6. Mint transaction ticket
 
           await this.sleep(500);
 
-          // 8. Create 2nd pain message
-
-          // 9. Validate message
-
-          // 10. Encrypt message
-
-          // 11. 'Forward transaction to Finstream gateway' - add message to 'data base' & update transaction status
+          messageArgs = {};
+          message = await createMessage(/**TODO*/);
+          // TODO update merkle root on chain
+          this.addTransactionMessage(this.selectedBankName, transaction.id, message);
           this.updateTransactionStatus(this.selectedBankName, transaction.id, 'forwarded');
 
           await this.sleep(500);
-          // Get exchange rate from the Chainlink price feed
+          const exchangeRate = 0.9; // TODO update query exchange rate from chain 
+          message = await createMessage(/**TODO*/);
+          // TODO update merkle root on chain
+          this.addTransactionMessage(this.selectedBankName, transaction.id, message);
           this.updateTransactionStatus(this.selectedBankName, transaction.id, 'set exchange rate');
-          // TODO add first fxtr message
 
           await this.sleep(500);
           // Bank accepts exchange rate
+          message = await createMessage(/**TODO*/);
+          // TODO update merkle root on chain
+          this.addTransactionMessage(this.selectedBankName, transaction.id, message);
           this.updateTransactionStatus(this.selectedBankName, transaction.id, 'accept exchange rate');
-          const exchangeRate = 0.9; // TODO update query exchange rate from chain 
 
           await this.sleep(500);
           // Native currency exchanged for target currency
           // TODO call controller to start transfer
+          message = await createMessage(/**TODO*/);
+          // TODO update merkle root on chain
+          this.addTransactionMessage(this.selectedBankName, transaction.id, message);
           this.updateTransactionStatus(this.selectedBankName, transaction.id, 'transfer');
-          // TODO add third pain message
 
           // TODO add transaction hash to transaction object 
           await this.sleep(500);
           // Money sent
+          message = await createMessage(/**TODO*/);
+          // TODO update merkle root on chain
+          this.addTransactionMessage(this.selectedBankName, transaction.id, message);
           this.updateTransactionStatus(this.selectedBankName, transaction.id, 'sent');
-          // TODO add fourth pain message
 
           await this.sleep(500);
           // Transaction completed
-          this.updateTransactionStatus(this.selectedBankName, transaction.id, 'completed');
           // TODO add pacs message
+          message = await createMessage(/**TODO*/);
+          // TODO update merkle root on chain
+          this.addTransactionMessage(this.selectedBankName, transaction.id, message);
+          this.updateTransactionStatus(this.selectedBankName, transaction.id, 'completed');
+
           this.transferRecipient.balance += this.transferAmount * exchangeRate; // adjust calculation depending on switch direction
         } else {
           alert("Please enter a positive amount and select a recipient.");
