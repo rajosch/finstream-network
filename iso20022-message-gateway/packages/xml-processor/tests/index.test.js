@@ -21,7 +21,9 @@ describe('XML Processor Library', () => {
         const xmlPath = path.join(__dirname, '../../../../files/messages', 'msg0-pain.001.001.12.xml');
         const xsdPath = path.join(__dirname, '../../../../files/definitions', 'pain.001.001.12.xsd');
 
-        const result = validateXML(xmlPath, xsdPath);
+        const data = fs.readFileSync(xmlPath); 
+        const xsdContent = fs.readFileSync(xsdPath); 
+        const result = validateXML(data.toString(), xsdContent);
         expect(result.valid).toBe(true);
         expect(result.errors.length).toBe(0);
     });
@@ -30,7 +32,9 @@ describe('XML Processor Library', () => {
         const xmlPath = path.join(__dirname, '../../../../files/messages', 'errorMessage.xml');
         const xsdPath = path.join(__dirname, '../../../../files/definitions', 'pacs.002.001.14.xsd');
 
-        const result = validateXML(xmlPath, xsdPath);
+        const data = fs.readFileSync(xmlPath); 
+        const xsdContent = fs.readFileSync(xsdPath); 
+        const result = validateXML(data.toString(), xsdContent);
         expect(result.valid).toBe(false);
         expect(result.errors.length).toBeGreaterThan(0);
     });

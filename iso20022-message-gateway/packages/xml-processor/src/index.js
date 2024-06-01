@@ -1,13 +1,29 @@
 const { execSync } = require('child_process');
 const xml2js = require('xml2js');
+const fs = require('fs');
+const path = require('path');
+const os = require('os');
 
-function validateXML(xmlPath, xsdPath) {
+function validateXML(xmlContent, xsdContent) {
+    const tempDir = os.tmpdir();
+
+    // Create temporary files for the XML and XSD content
+    const xmlPath = path.join(tempDir, 'temp.xml');
+    const xsdPath = path.join(tempDir, 'temp.xsd');
+
+    fs.writeFileSync(xmlPath, xmlContent);
+    fs.writeFileSync(xsdPath, xsdContent);
+
     try {
-        const result = execSync(`xmllint --noout --schema ${xsdPath} ${xmlPath}`);
+        execSync(`xmllint --noout --schema ${xsdPath} ${xmlPath}`);
         return { valid: true, errors: [] };
     } catch (error) {
         const errors = parseXmllintErrors(error.stderr.toString());
         return { valid: false, errors: errors };
+    } finally {
+        // Clean up temporary files
+        fs.unlinkSync(xmlPath);
+        fs.unlinkSync(xsdPath);
     }
 }
 
