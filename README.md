@@ -54,9 +54,9 @@
   - [ ] Deploy to Fuji Testnet
 - [ ] Gateway
 
-  - [ ] message creation
-  - [ ] message parsing
-  - [ ] message encrpytion
+  - [X] message creation
+  - [X] message parsing
+  - [X] message encrpytion
   - [ ] create merke tree / update merkle tree
   - [ ] mint ticket / update merkle tree
   - [ ] return (updated) merkle tree
@@ -69,7 +69,6 @@
   - [ ] add wallets [alice, bob, charly, diana, bank-eu, bank-usa] (private keys 'oh schreck')
   - [ ] add contract calls (ethers)
   - [ ] database write & read information
-- [ ] deploy website to vercel
 
 ### Future Work
 

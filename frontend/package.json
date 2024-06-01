@@ -11,6 +11,7 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "multi-party-encrypter": "link:../iso20022-message-gateway/packages/multi-party-encrypter",
     "nuxt": "^3.11.2",
     "vue": "^3.4.27",
     "vue-router": "^4.3.2"
