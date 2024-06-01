@@ -17,24 +17,24 @@ describe('XML Processor Library', () => {
 
     afterAll(() => {});
 
-    test('validateXML should return valid for a correct XML file', () => {
+    test('validateXML should return valid for a correct XML file', async () => {
         const xmlPath = path.join(__dirname, '../../../../files/messages', 'msg0-pain.001.001.12.xml');
         const xsdPath = path.join(__dirname, '../../../../files/definitions', 'pain.001.001.12.xsd');
 
         const data = fs.readFileSync(xmlPath); 
         const xsdContent = fs.readFileSync(xsdPath); 
-        const result = validateXML(data.toString(), xsdContent);
+        const result = await validateXML(data.toString(), xsdContent);
         expect(result.valid).toBe(true);
         expect(result.errors.length).toBe(0);
     });
 
-    test('validateXML should return errors for an incorrect XML file', () => {
+    test('validateXML should return errors for an incorrect XML file', async () => {
         const xmlPath = path.join(__dirname, '../../../../files/messages', 'errorMessage.xml');
         const xsdPath = path.join(__dirname, '../../../../files/definitions', 'pacs.002.001.14.xsd');
 
         const data = fs.readFileSync(xmlPath); 
         const xsdContent = fs.readFileSync(xsdPath); 
-        const result = validateXML(data.toString(), xsdContent);
+        const result = await validateXML(data.toString(), xsdContent);
         expect(result.valid).toBe(false);
         expect(result.errors.length).toBeGreaterThan(0);
     });

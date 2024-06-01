@@ -92,36 +92,6 @@ describe("Controller", function () {
         });
     });
 
-    describe("Exchange Transactions", function () {
-        it("Should facilitate a token exchange transaction", async function () {
-            const { controllerContract, msgTicket, treasury, tokenA, tokenB, user1, controller } = await loadFixture(deployControllerFixture);
-
-            await tokenA.connect(user1).approve(treasury, ethers.parseUnits("1000", 18));
-            await treasury.connect(controller).addLiquidity(tokenA, ethers.parseUnits("1000", 18));
-            await treasury.connect(controller).addLiquidity(tokenB, ethers.parseUnits("1000", 18));
-            await msgTicket.connect(controller).mintTicket(user1.address);
-
-            const ticketId = 0;
-            const leaf = ethers.keccak256(ethers.toUtf8Bytes(["address", "address", "address", "uint256", "uint256"], [user1.address, tokenA, tokenB, ethers.parseUnits("500", 18), ethers.parseUnits("100", 18)]));
-            const proof = [];
-
-            await controllerContract.connect(user1).initiateExchangeTransaction(user1.address, user1.address, tokenA, tokenB, ethers.parseUnits("500", 18), ethers.parseUnits("100", 18), ticketId, proof);
-            expect(await tokenB.balanceOf(user1.address)).to.equal(ethers.parseUnits("100", 18));
-        });
-
-        it("Should revert if the sender is not a registered client", async function () {
-            const { controllerContract, msgTicket, tokenA, tokenB, user1, otherAccount } = await loadFixture(deployControllerFixture);
-
-            const ticketId = 0;
-            const leaf = ethers.keccak256(ethers.toUtf8Bytes(["address", "address", "address", "uint256", "uint256"], [otherAccount.address, tokenA, tokenB, ethers.parseUnits("500", 18), ethers.parseUnits("100", 18)]));
-            const proof = [];
-
-            await expect(
-                controllerContract.connect(otherAccount).initiateExchangeTransaction(otherAccount.address, user1.address, tokenA, tokenB, ethers.parseUnits("500", 18), ethers.parseUnits("100", 18), ticketId, proof)
-            ).to.be.revertedWith("Sender is not a registered client");
-        });
-    });
-
     describe("Ticket Management", function () {
         it("Should allow registered clients to initiate a ticket", async function () {
             const { controllerContract, msgTicket, user1 } = await loadFixture(deployControllerFixture);

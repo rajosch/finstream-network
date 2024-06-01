@@ -146,155 +146,174 @@
 </template>
 
 <script>
-  import { useBankStorage } from '@/composables/localStorage';
-  import { createMessage } from 'gateway';
-  import { ethers } from 'ethers';
-  import { protobuf } from 'protobufjs';
+import { useBankStorage } from '@/composables/localStorage';
+import { ethers } from 'ethers';
 
-  export default {
-    props: {
-      selectedBank: {
-        type: String,
-        required: true
-      }
+export default {
+  props: {
+    selectedBank: {
+      type: String,
+      required: true
+    }
+  },
+  setup() {
+    const { banks, id, addTransaction, updateTransactionStatus, addTransactionMessage } = useBankStorage();
+    return {
+      banks,
+      id,
+      addTransaction,
+      updateTransactionStatus,
+      addTransactionMessage
+    };
+  },
+  data() {
+    return {
+      loggedIn: false,
+      selectedUser: null,
+      transferAmount: '',
+      transferRecipient: ''
+    };
+  },
+  computed: {
+    selectedBankName() {
+      return this.selectedBank.localeCompare('Bank USA') === 0 ? 'bankUSA' : 'bankEU';
     },
-    setup() {
-      const { banks, id, addTransaction, updateTransactionStatus, addTransactionMessage } = useBankStorage();
-      return {
-        banks,
-        id,
-        addTransaction,
-        updateTransactionStatus,
-        addTransactionMessage
-      }
+    nonSelectedBankName() {
+      return this.selectedBank.localeCompare('Bank USA') === 0 ? 'bankEU' : 'bankUSA';
     },
-    data() {
-      return {
-        loggedIn: false,
-        selectedUser: null,
-        transferAmount: '',
-        transferRecipient: ''
-      }
+    currencySymbol() {
+      return this.selectedBank.localeCompare('Bank USA') === 0 ? '$' : '€';
     },
-    computed: {
-      selectedBankName() {
-        return this.selectedBank.localeCompare('Bank USA') === 0 ? 'bankUSA' : 'bankEU';
-      },
-      nonSelectedBankName() {
-        return this.selectedBank.localeCompare('Bank USA') === 0 ? 'bankEU' : 'bankUSA';
-      },
-      currencySymbol() {
-        return this.selectedBank.localeCompare('Bank USA') === 0 ? '$' : '€';
-      },
-      notCurrencySymbol() {
-        return this.selectedBank.localeCompare('Bank USA') === 0 ? '€' : '$';
-      }
+    notCurrencySymbol() {
+      return this.selectedBank.localeCompare('Bank USA') === 0 ? '€' : '$';
+    }
+  },
+  methods: {
+    logIn() {
+      this.loggedIn = true;
     },
-    methods: {
-      logIn() {
-        this.loggedIn = true;
-      },
-      logOut() {
-        this.selectedUser = null;
-        this.transferAmount = '';
-        this.transferRecipient = '';
-        this.loggedIn = false;
-      },
-      async startTransaction() {
+    logOut() {
+      this.selectedUser = null;
+      this.transferAmount = '';
+      this.transferRecipient = '';
+      this.loggedIn = false;
+    },
+    async startTransaction() {
+      if (this.transferAmount > 0 && this.transferAmount <= this.selectedUser.balance && this.transferRecipient.length !== 0) {
+        const euWallet = new ethers.Wallet(this.banks.bankEU.privateKey);
+        const usaWallet = new ethers.Wallet(this.banks.bankUSA.privateKey);
+        const gatewayWallet = new ethers.Wallet(this.banks.gateway.privateKey);
+        const wallets = [euWallet, usaWallet, gatewayWallet];
 
-        if (this.transferAmount > 0 && this.transferAmount <= this.selectedUser.balance && this.transferRecipient.length !== 0) {
-          const euWallet = new ethers.Wallet(this.banks.bankEU.privateKey);
-          const usaWallet = new ethers.Wallet(this.banks.bankUSA.privateKey);
-          const gatewayWallet = new ethers.Wallet(this.banks.gateway.privateKey);
-          const wallets = [euWallet, usaWallet, gatewayWallet];
+        // Initiate transaction
+        this.selectedUser.balance -= this.transferAmount;
 
-          // Initiate transaction
-          this.selectedUser.balance -= this.transferAmount;
+        // 0. Mint transaction ticket
+        const ticketId = 'ticketID'; // TODO contract call await controller.mintTicket(...)
 
-          // 0. Mint transaction ticket
-          const ticketId = 'ticketID'; // TODO contract call await controller.mintTicket(...)
-          let messageArgs = {
+        let messageType = 'pain.001.001.12'
+        let messageArgs = {};
 
-          };
-          const xsdPath = path.join(__dirname, '../../../../files/definitions', `${messageType}.xsd`);
-          const protoPath = path.join(__dirname, '../../../../files/protobuf', `${messageType}.proto`);
+        let message = createMessage(messageType, messageArgs);
 
-          const root = protobuf.loadSync(protoPath);
-          const xsdContent = fs.readFileSync(xsdPath);
+        // 4. Create transaction
+        const transaction = {
+          id: ticketId,
+          amount: this.transferAmount,
+          recipient: this.transferRecipient,
+          sender: this.selectedUser,
+          status: 'initiated',
+          messages: [message]
+        };
 
-          let message = await createMessage('pain.001.001.12', wallets, messageArgs, ticketId, );
+        // 5. Add transaction to 'data base'
+        this.addTransaction(this.selectedBankName, transaction);
 
-          // 4. Create transaction
-          const transaction = {
-            id: ticketId,
-            amount: this.transferAmount,
-            recipient: this.transferRecipient,
-            sender: this.selectedUser,
-            status: 'initiated',
-            messages: [message]
-          };
-
-          // 5. Add transaction to 'data base'
-          this.addTransaction(this.selectedBankName, transaction);
+        await this.sleep(500);
 
 
-          await this.sleep(500);
+        messageArgs = {};
+        messageType = 'pain.001.001.12'
 
-          messageArgs = {};
-          message = await createMessage(/**TODO*/);
-          // TODO update merkle root on chain
-          this.addTransactionMessage(this.selectedBankName, transaction.id, message);
-          this.updateTransactionStatus(this.selectedBankName, transaction.id, 'forwarded');
+        message = createMessage(messageType, messageArgs);
 
-          await this.sleep(500);
-          const exchangeRate = 0.9; // TODO update query exchange rate from chain 
-          message = await createMessage(/**TODO*/);
-          // TODO update merkle root on chain
-          this.addTransactionMessage(this.selectedBankName, transaction.id, message);
-          this.updateTransactionStatus(this.selectedBankName, transaction.id, 'set exchange rate');
+        // TODO update merkle root on chain
+        this.addTransactionMessage(this.selectedBankName, transaction.id, message);
+        this.updateTransactionStatus(this.selectedBankName, transaction.id, 'forwarded');
 
-          await this.sleep(500);
-          // Bank accepts exchange rate
-          message = await createMessage(/**TODO*/);
-          // TODO update merkle root on chain
-          this.addTransactionMessage(this.selectedBankName, transaction.id, message);
-          this.updateTransactionStatus(this.selectedBankName, transaction.id, 'accept exchange rate');
+        await this.sleep(500);
+        const exchangeRate = 0.9; // TODO update query exchange rate from chain
 
-          await this.sleep(500);
-          // Native currency exchanged for target currency
-          // TODO call controller to start transfer
-          message = await createMessage(/**TODO*/);
-          // TODO update merkle root on chain
-          this.addTransactionMessage(this.selectedBankName, transaction.id, message);
-          this.updateTransactionStatus(this.selectedBankName, transaction.id, 'transfer');
+        
+        messageArgs = {};
+        messageType = 'fxtr.014.001.05'
 
-          // TODO add transaction hash to transaction object 
-          await this.sleep(500);
-          // Money sent
-          message = await createMessage(/**TODO*/);
-          // TODO update merkle root on chain
-          this.addTransactionMessage(this.selectedBankName, transaction.id, message);
-          this.updateTransactionStatus(this.selectedBankName, transaction.id, 'sent');
+        message = createMessage(messageType, messageArgs);
 
-          await this.sleep(500);
-          // Transaction completed
-          // TODO add pacs message
-          message = await createMessage(/**TODO*/);
-          // TODO update merkle root on chain
-          this.addTransactionMessage(this.selectedBankName, transaction.id, message);
-          this.updateTransactionStatus(this.selectedBankName, transaction.id, 'completed');
+        // TODO update merkle root on chain
+        this.addTransactionMessage(this.selectedBankName, transaction.id, message);
+        this.updateTransactionStatus(this.selectedBankName, transaction.id, 'set exchange rate');
 
-          this.transferRecipient.balance += this.transferAmount * exchangeRate; // adjust calculation depending on switch direction
-        } else {
-          alert("Please enter a positive amount and select a recipient.");
-        }
+        await this.sleep(500);
 
-        this.transferAmount = '';
-        this.transferRecipient = '';
-      },
-      async sleep(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+        // Bank accepts exchange rate
+
+        // TODO update merkle root on chain
+        this.updateTransactionStatus(this.selectedBankName, transaction.id, 'accept exchange rate');
+
+        await this.sleep(500);
+
+        // Native currency exchanged for target currency
+        // TODO call controller to start transfer
+        messageArgs = {};
+        messageType = 'pain.001.001.12'
+
+        message = createMessage(messageType, messageArgs);
+
+        // TODO update merkle root on chain
+        this.addTransactionMessage(this.selectedBankName, transaction.id, message);
+        this.updateTransactionStatus(this.selectedBankName, transaction.id, 'transfer');
+
+        // TODO add transaction hash to transaction object 
+        await this.sleep(500);
+
+        // Money sent
+        messageArgs = {};
+        messageType = 'pain.001.001.12'
+
+        message = createMessage(messageType, messageArgs);
+
+        // TODO update merkle root on chain
+        this.addTransactionMessage(this.selectedBankName, transaction.id, message);
+        this.updateTransactionStatus(this.selectedBankName, transaction.id, 'sent');
+
+        await this.sleep(500);
+        // Transaction completed
+        // TODO add pacs message
+        messageArgs = {};
+        messageType = 'pacs.002.001.14'
+
+        message = createMessage(messageType, messageArgs);
+
+        // TODO update merkle root on chain
+        this.addTransactionMessage(this.selectedBankName, transaction.id, message);
+        this.updateTransactionStatus(this.selectedBankName, transaction.id, 'completed');
+
+        this.transferRecipient.balance += this.transferAmount * exchangeRate; // adjust calculation depending on switch direction
+      } else {
+        alert("Please enter a positive amount and select a recipient.");
       }
+
+      this.transferAmount = '';
+      this.transferRecipient = '';
+    },
+    async sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    },
+    async loadFile(filePath) {
+      const response = await fetch(filePath);
+      return response.text();
     }
   }
+};
 </script>

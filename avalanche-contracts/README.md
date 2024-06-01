@@ -19,8 +19,7 @@ The `Controller` smart contract is designed to manage a network of businesses an
 1. **Client Management**: The Controller contract maintains a mapping of registered clients (businesses or banks) that are authorized to initiate and receive transactions. Clients can be added or removed from the network by the contract owner, ensuring only trusted entities participate.
 2. **Contract Address Management**: The addresses of the MsgTicket and Treasury contracts can be updated by the owner, providing flexibility to adapt to changes and upgrades without deploying a new Controller contract.
 3. **Transaction Initiation**: Facilitates secure token transfers between clients. Each transaction is verified against a Merkle proof provided by the MsgTicket contract to ensure authenticity. Interacts with the Treasury contract to transfer tokens on behalf of clients, leveraging liquidity and managing borrowing limits.
-4. **Token Exchange Transactions**: Supports token exchange operations, allowing clients to swap tokens securely. Verifies the exchange transaction using the MsgTicket contract and executes the exchange through the Treasury contract, ensuring the best rates and adherence to borrowing limits.
-5. **Ticket Management**: Allows clients to initiate new ticket sets, which are essential for tracking ISO20022 messages associated with transactions. Clients can update the Merkle tree of their tickets to reflect new transaction messages, ensuring data integrity and traceability.
+4. **Ticket Management**: Allows clients to initiate new ticket sets, which are essential for tracking ISO20022 messages associated with transactions. Clients can update the Merkle tree of their tickets to reflect new transaction messages, ensuring data integrity and traceability.
 
 ##### Security Considerations
 
@@ -61,12 +60,19 @@ The `Treasury` smart contract provides robust and flexible functionality for han
 
 1. **Support for Multiple ERC-20 Tokens**: The Treasury contract supports multiple ERC-20 tokens, ensuring flexibility and scalability. Supported tokens are tracked using a mapping, allowing the contract owner to add or remove tokens as needed.
 2. **Liquidity Management**: The contract facilitates the addition and removal of liquidity for supported tokens. This ensures that the contract maintains adequate reserves for token transfers and exchanges.
-3. **Secure Token Transfers**: Tokens can be securely transferred from one account to another. The contract checks if the sender has sufficient tokens. If not, it utilizes the contract's liquidity to cover the transfer, adhering to predefined borrowing limits.
-4. **Token Exchange Using Chainlink's Price Feed**: The Treasury contract leverages Chainlink price feeds to get the latest exchange rates for token pairs. This ensures that token exchanges are executed at accurate and fair market rates. The contract first checks if the caller holds enough of the target token (toToken). If so, it transfers the tokens directly. If not, it checks if the caller has sufficient source tokens (fromToken) and handles the swap using the contract's liquidity. **NOTE:** *Since there is no EUR/USD price feed on the Fuji testnet, he LINK / AVAX price feed will act as a stand-in to obtain a conversion rate.*
+3. **Secure Token Transfers**: Tokens can be securely transferred from one account to another.
+4. **Token Exchange Using Chainlink's Price Feed**: The Treasury contract leverages Chainlink price feeds to get the latest exchange rates for token pairs. This ensures that token exchanges are executed at accurate and fair market rates. **NOTE:** *Since there is no EUR/USD price feed on the Fuji testnet, he LINK / AVAX price feed will act as a stand-in to obtain a conversion rate. Also, to further simplify things, the conversion in both directions will be handled the same. So 1USD == 0.9€ & 1€ == 0.9USD in this PoC.*
 
 ##### Security Considerations
 
 - **Token Support**: Only tokens that are explicitly supported by the contract can be managed, ensuring that unauthorized tokens cannot be added or removed.
-- **Borrowing Limits**: The contract enforces borrowing limits per user per token, preventing any single user from over-utilizing the contract's liquidity.
 - **Accurate Exchange Rates**: Chainlink price feeds provide reliable and up-to-date exchange rates, ensuring that token exchanges are fair and accurate.
 - **Event Logging**: Comprehensive event logging provides transparency and traceability, making it easy to audit the contract's operations.
+
+
+## Deployed Contracts
+
+* [EURC MockCoin](https://https://testnet.snowtrace.io/address/0x401e681c23Bbb317796238f4224e583B5e02F222) (0x401e681c23Bbb317796238f4224e583B5e02F222)
+* [USDC MockCoin](https://https://testnet.snowtrace.io/address/0x19232f81D9F398e8C6820AA96C1E2600865B57CB) (0x19232f81D9F398e8C6820AA96C1E2600865B57CB)
+
+To simplify the flow both the US Bank and the EU Bank own 1 000 000 000 tokens in their respective currency.

@@ -1,47 +1,51 @@
-import { execSync } from 'child_process';
 import xml2js from 'xml2js';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import { promisify } from 'util';
+import libxmljs from 'libxmljs2';
 
-function validateXML(xmlContent, xsdContent) {
+const writeFileAsync = promisify(fs.writeFile);
+const unlinkAsync = promisify(fs.unlink);
+
+async function validateXML(xmlContent, xsdContent) {
     const tempDir = os.tmpdir();
 
     // Create temporary files for the XML and XSD content
     const xmlPath = path.join(tempDir, 'temp.xml');
     const xsdPath = path.join(tempDir, 'temp.xsd');
 
-    fs.writeFileSync(xmlPath, xmlContent);
-    fs.writeFileSync(xsdPath, xsdContent);
+    await writeFileAsync(xmlPath, xmlContent);
+    await writeFileAsync(xsdPath, xsdContent);
 
     try {
-        execSync(`xmllint --noout --schema ${xsdPath} ${xmlPath}`);
-        return { valid: true, errors: [] };
+        const xmlDoc = libxmljs.parseXml(xmlContent);
+        const xsdDoc = libxmljs.parseXml(xsdContent);
+
+        const isValid = xmlDoc.validate(xsdDoc);
+        if (isValid) {
+            return { valid: true, errors: [] };
+        } else {
+            const errors = parseLibxmljsErrors(xmlDoc.validationErrors);
+            return { valid: false, errors: errors };
+        }
     } catch (error) {
-        const errors = parseXmllintErrors(error.stderr.toString());
-        return { valid: false, errors: errors };
+        return { valid: false, errors: [error.message] };
     } finally {
         // Clean up temporary files
-        fs.unlinkSync(xmlPath);
-        fs.unlinkSync(xsdPath);
+        await unlinkAsync(xmlPath);
+        await unlinkAsync(xsdPath);
     }
 }
 
-function parseXmllintErrors(stderr) {
-    const lines = stderr.split('\n');
-    return lines.filter(line => line.trim() !== '').map(line => {
-        const parts = line.split(':');
-        if (parts.length >= 4) {
-            return {
-                file: parts[0].trim(),
-                line: parseInt(parts[1].trim(), 10),
-                column: parseInt(parts[2].trim(), 10),
-                message: parts.slice(3).join(':').trim()
-            };
-        }
-        return { message: line.trim() };
-    });
+function parseLibxmljsErrors(validationErrors) {
+    return validationErrors.map(error => ({
+        message: error.message,
+        line: error.line,
+        column: error.column
+    }));
 }
+
 
 function xmlToBin(data, root, msgType) {
     return new Promise((resolve, reject) => {

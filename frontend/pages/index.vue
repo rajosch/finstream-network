@@ -43,7 +43,7 @@
       </p>
       <div class="flex justify-center h-1/2">
         <div class="aspect-w-16 aspect-h-9 w-full max-w-2xl">
-          <!-- TODO Update the video id when it is uploaded -->
+          <!-- UPDATE VIDEO ID! -->
           <iframe
             class="w-full h-full rounded-lg shadow-lg"
             src="https://www.youtube.com/embed/kvPkgd6eQKU"

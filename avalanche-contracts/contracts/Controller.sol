@@ -89,7 +89,8 @@ contract Controller is Ownable {
         * @dev Function to initiate a transaction.
         * @param from The address initiating the transaction.
         * @param to The address receiving the transaction.
-        * @param token The address of the token being transferred.
+        * @param fromToken The address of the token being transferred from sender to the Treasury.
+        * @param toToken The address of the token being transferred from the Treasury to the receiver.
         * @param amount The amount of tokens being transferred.
         * @param ticketId The ID of the MsgTicket associated with the transaction.
         * @param merkleProof The Merkle proof validating the message inclusion.
@@ -97,7 +98,8 @@ contract Controller is Ownable {
     function initiateTransaction(
         address from,
         address to,
-        address token,
+        address fromToken,
+        address toToken,
         uint256 amount,
         uint256 ticketId,
         bytes32[] memory merkleProof
@@ -106,47 +108,12 @@ contract Controller is Ownable {
         require(clients[to], "Receiver is not a registered client");
 
         // Verify the message associated with the transaction using MsgTicket
-        bytes32 leaf = keccak256(abi.encodePacked(from, to, token, amount));
+        bytes32 leaf = keccak256(abi.encodePacked(from, to, fromToken, amount));
         bool isValid = msgTicket.verifyMessage(ticketId, leaf, merkleProof);
         require(isValid, "Invalid transaction message");
 
         // Transfer tokens using the Treasury contract
-        treasury.transferTokens(token, from, to, amount, from);
-    }
-
-    /**
-        * @dev Function to facilitate a token exchange transaction.
-        * @param from The address initiating the transaction.
-        * @param to The address receiving the transaction.
-        * @param fromToken The address of the token being exchanged.
-        * @param toToken The address of the token being received.
-        * @param amountIn The amount of tokens being exchanged.
-        * @param minAmountOut The minimum amount of tokens to receive.
-        * @param ticketId The ID of the MsgTicket associated with the transaction.
-        * @param merkleProof The Merkle proof validating the message inclusion.
-    */
-    function initiateExchangeTransaction(
-        address from,
-        address to,
-        address fromToken,
-        address toToken,
-        uint256 amountIn,
-        uint256 minAmountOut,
-        uint256 ticketId,
-        bytes32[] memory merkleProof
-    ) public {
-        require(clients[from], "Sender is not a registered client");
-
-        // Verify the message associated with the transaction using MsgTicket
-        bytes32 leaf = keccak256(abi.encodePacked(from, fromToken, toToken, amountIn, minAmountOut));
-        bool isValid = msgTicket.verifyMessage(ticketId, leaf, merkleProof);
-        require(isValid, "Invalid transaction message");
-
-        // Exchange tokens using the Treasury contract
-        treasury.exchangeTokens(fromToken, toToken, amountIn, minAmountOut, from);
-
-        // Transfer tokens using the Treasury contract
-        treasury.transferTokens(toToken, address(this), to, amountIn, from);
+        treasury.transferTokens(fromToken, toToken, from, to, amount);
     }
 
     /**

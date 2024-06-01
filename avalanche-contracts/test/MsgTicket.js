@@ -53,13 +53,6 @@ describe("MsgTicket", function () {
         .to.emit(msgTicket, "TicketMinted")
         .withArgs(otherAccount.address, tokenId, await ethers.provider.getBlockNumber() + 1);
     });
-
-    // it("Should not allow non-controllers to mint tokens", async function () {
-    //   const { msgTicket, otherAccount } = await loadFixture(deployMsgTicketFixture);
-
-    //   await expect(msgTicket.connect(otherAccount).mintTicket(otherAccount.address)).to.be.revertedWith(
-    //     `AccessControlUnauthorizedAccount("${otherAccount.address.toLowerCase()}", "${(await msgTicket.CONTROLLER_ROLE()).toLowerCase()}")`);
-    // });
   });
 
   describe("Merkle Root Management", function () {
@@ -84,28 +77,6 @@ describe("MsgTicket", function () {
         .to.emit(msgTicket, "MerkleRootUpdated")
         .withArgs(tokenId, merkleRoot, await ethers.provider.getBlockNumber() + 1);
     });
-
-    // it("Should not allow non-controllers to update the Merkle root", async function () {
-    //     const { msgTicket, otherAccount } = await loadFixture(deployMsgTicketFixture);
-    //     const tokenId = 0;
-    //     const merkleRoot = ethers.keccak256(ethers.toUtf8Bytes("merkleRoot"));
-
-    //     await msgTicket.connect(otherAccount).mintTicket(otherAccount.address);
-        
-    //     const expectedError = `AccessControlUnauthorizedAccount("${otherAccount.address.toLowerCase()}", "${controllerRole.toLowerCase()}")`;
-        
-    //     try {
-    //         await msgTicket.connect(otherAccount).updateMerkleRoot(tokenId, merkleRoot);
-    //         expect.fail("Expected transaction to be reverted");
-    //     } catch (error) {
-    //         console.log("Caught error:", error.message);
-    //         expect(error.message).to.include(expectedAddress);
-    //         expect(error.message).to.include(expectedRole);
-    //     }
-    //     // await expect(msgTicket.connect(otherAccount).updateMerkleRoot(tokenId, merkleRoot)).to.be.revertedWith(
-    //     //     `AccessControlUnauthorizedAccount("${otherAccount.address.toLowerCase()}", "${(await msgTicket.CONTROLLER_ROLE()).toLowerCase()}")`
-    //     // );
-    // });
   });
 
   describe("Verification", function () {

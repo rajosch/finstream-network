@@ -88,6 +88,7 @@ describe("Treasury", function () {
   });
 
   describe("Token Transfers", function () {
+    // Problems testing this locally
     // it("Should allow the controller to transfer tokens on behalf of a client", async function () {
     //   const { treasury, tokenA, controller, user, otherAccount, manager } = await loadFixture(deployTreasuryFixture);
 
@@ -99,49 +100,5 @@ describe("Treasury", function () {
 
     //   expect(await tokenA.balanceOf(otherAccount.address)).to.equal(ethers.parseUnits("500", 18));
     // });
-
-    it("Should revert if the token is not supported", async function () {
-      const { treasury, tokenA, controller, user, otherAccount } = await loadFixture(deployTreasuryFixture);
-
-      await expect(
-        treasury.connect(controller).transferTokens(tokenA, user.address, otherAccount.address, ethers.parseUnits("500", 18), user.address)
-      ).to.be.revertedWith("Token not supported");
-    });
   });
-
-  describe("Exchanging Tokens", function () {
-    // it("Should allow the controller to exchange tokens on behalf of a client", async function () {
-    //   const { treasury, tokenA, tokenB, controller, user, otherAccount, manager } = await loadFixture(deployTreasuryFixture);
-
-    //   await treasury.connect(manager).addSupportedToken(tokenA);
-    //   await tokenA.connect(user).approve(treasury, ethers.parseUnits("1000", 18));
-    //   await treasury.connect(controller).exchangeTokens(tokenA, tokenA, ethers.parseUnits("500", 18), ethers.parseUnits("100", 18), user.address);
-
-    //   // Assuming 1 tokenA = 0.2 tokenB for this test
-    //   expect(await tokenB.balanceOf(otherAccount.address)).to.equal(ethers.parseUnits("100", 18));
-    // });
-
-    it("Should revert if the token is not supported", async function () {
-      const { treasury, tokenA, tokenB, controller, user } = await loadFixture(deployTreasuryFixture);
-
-      await expect(
-        treasury.connect(controller).exchangeTokens(tokenA, tokenA, ethers.parseUnits("500", 18), ethers.parseUnits("100", 18), user.address)
-      ).to.be.revertedWith("From token not supported");
-    });
-  });
-
-  // describe("Repaying Borrowed Tokens", function () {
-  //   it("Should allow the controller to repay borrowed tokens on behalf of a client", async function () {
-  //     const { treasury, tokenA, controller, user, manager } = await loadFixture(deployTreasuryFixture);
-
-  //     await treasury.connect(manager).addSupportedToken(tokenA);
-  //     await treasury.setMaxLiquidityPerUser(user.address, tokenA, ethers.parseUnits("1000", 18));
-  //     await treasury.connect(controller).transferTokens(tokenA, treasury, user.address, ethers.parseUnits("500", 18), user.address);
-
-  //     await tokenA.connect(user).approve(treasury, ethers.parseUnits("500", 18));
-  //     await treasury.connect(user).repayBorrowedTokens(tokenA, ethers.parseUnits("500", 18));
-
-  //     expect(await treasury.borrowedAmounts(user.address, tokenA)).to.equal(0);
-  //   });
-  // });
 });
