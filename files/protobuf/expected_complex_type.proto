@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+message Person {
+  string FirstName = 1;
+  string LastName = 2;
+  int32 Age = 3;
+}
+
+message Transaction {
+  string Amount = 1;
+  string Currency = 2;
+  string Date = 3;
+  Person Sender = 4;
+  Person Receiver = 5;
+}

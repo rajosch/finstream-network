@@ -1,4 +1,4 @@
-# FinStream - Blok Magic Hackathon
+# FinStream - Network
 
 ## Milestones
 

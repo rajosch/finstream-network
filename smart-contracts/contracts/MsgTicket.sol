@@ -110,6 +110,4 @@ contract MsgTicket is ERC721, AccessControl {
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721, AccessControl) returns (bool) {
         return ERC721.supportsInterface(interfaceId) || AccessControl.supportsInterface(interfaceId);
     }
-
-    // TODO Should be Soulbound
 }

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="urn:test:complex" xmlns="urn:test:complex">
+
+    <xs:simpleType name="CurrencyCode">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[A-Z]{3}"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="Person">
+        <xs:sequence>
+            <xs:element name="FirstName" type="xs:string"/>
+            <xs:element name="LastName" type="xs:string"/>
+            <xs:element name="Age" type="xs:int"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="Transaction">
+        <xs:sequence>
+            <xs:element name="Amount" type="xs:decimal"/>
+            <xs:element name="Currency" type="CurrencyCode"/>
+            <xs:element name="Date" type="xs:date"/>
+            <xs:element name="Sender" type="Person"/>
+            <xs:element name="Receiver" type="Person"/>
+        </xs:sequence>
+    </xs:complexType>
+
+</xs:schema>

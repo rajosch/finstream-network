@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+message ActiveCurrencyAndAmount {
+  string Value = 1;
+  string Ccy = 2;
+}
+
+message ContactInformation1 {
+  string Nm = 1;
+  string EmailAdr = 2;
+}
+
+message Document {
+  ContactInformation1 Contact = 1;
+  ActiveCurrencyAndAmount Amount = 2;
+}
