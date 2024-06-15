@@ -5,30 +5,23 @@
       v-if="!loggedIn"
       class="w-full max-w-md p-8 bg-white rounded shadow-lg"
     >
-      <h2 class="text-2xl font-bold mb-4 text-center text-gray-700">
-        {{ selectedBank }}
-      </h2>
-      <label
-        for="user-select"
-        class="block text-lg mb-2 text-gray-500"
-      >Select User:</label>
       <select
         id="user-select"
-        v-model="selectedUser"
+        v-model="selectedCustomer"
         class="w-full p-2 border rounded mb-4 text-gray-500"
       >
         <option
           disabled
           value=""
         >
-          Choose a user
+          Select a customer
         </option>
         <option
-          v-for="user in banks[selectedBankName].customers"
-          :key="user.id"
-          :value="user"
+          v-for="name in availableCustomers"
+          :key="name"
+          :value="name"
         >
-          {{ user.name }}
+          {{ name }}
         </option>
       </select>
       <button
@@ -44,8 +37,8 @@
       v-else
       class="w-full max-w-4xl p-8 bg-white rounded shadow-lg relative"
     >
-      <div class="absolute top-4 left-4 text-gray-700 text-lg font-semibold">
-        {{ selectedUser.name }}
+      <div class="text-gray-700 text-xl font-bold mb-5">
+        {{ customer.name }}
       </div>
       <div class="absolute top-4 right-4 text-gray-700">
         <button
@@ -55,24 +48,21 @@
           Log Out
         </button>
       </div>
-      <h2 class="text-2xl font-bold mb-4 text-center text-gray-700">
-        {{ selectedBank }}
-      </h2>
       <div class="grid grid-cols-5 gap-x-8">
         <div class="col-span-3">
-          <h3 class="text-xl font-semibold mb-2 text-gray-700">
+          <h3 class="text-lg font-semibold mb-2 text-gray-700">
             Account Balance
           </h3>
           <p class="text-lg text-gray-500">
-            {{ currencySymbol }}{{ selectedUser.balance }}
+            {{ currencySymbol }}{{ customer.balance }}
           </p>
-          <h3 class="text-xl font-semibold mt-6 mb-2 text-gray-700">
+          <h3 class="text-lg font-semibold mt-6 mb-2 text-gray-700">
             Transfer Money
           </h3>
           <input
             v-model="transferAmount"
             type="number"
-            :placeholder="`Amount in ${currencySymbol}`"
+            :placeholder="`Amount in ${bank.currency}`"
             class="w-full p-2 border rounded mb-2 text-gray-500"
             min="0"
           >
@@ -92,11 +82,11 @@
               Choose a recipient
             </option>
             <option
-              v-for="user in banks[nonSelectedBankName].customers"
-              :key="user.id"
-              :value="user"
+              v-for="name in otherCustomers"
+              :key="name"
+              :value="name"
             >
-              {{ user.name }} ({{ notCurrencySymbol }})
+              {{ name }} ({{ otherCurrenncy }})
             </option>
           </select>
           <button
@@ -107,38 +97,10 @@
           </button>
         </div>
         <div class="col-span-2 flex flex-col gap-y-1 h-84 overflow-auto">
-          <h3 class="text-xl font-semibold mb-2 text-gray-700">
+          <h3 class="text-lg font-semibold mb-2 text-gray-700">
             Transfers
           </h3>
-          <div 
-            v-for="transaction in banks[selectedBankName].transactions"
-            :key="transaction.id"
-            :class="[
-              transaction.status.localeCompare('completed') === 0 ? 'text-gray-500' : 'text-green-500', 
-              transaction.status.localeCompare('failed') === 0 ? 'text-red-500' : ''
-            ]"
-          >
-            <div 
-              v-if="transaction.sender.name.localeCompare(selectedUser.name) === 0"
-              class=""
-            >
-              <div class="flex items-center">
-                ID:
-                {{ transaction.id }}
-              </div>
-              <div class="ml-9">
-                <div>
-                  Recipient: {{ transaction.recipient.name }}
-                </div>
-                <div>
-                  Amount: {{ transaction.amount }}
-                </div>
-                <div>
-                  Status: {{ transaction.status }}
-                </div>
-              </div>
-            </div>
-          </div>
+          TODO PAST TRANSFERS
         </div>
       </div>
     </div>
@@ -146,7 +108,6 @@
 </template>
 
 <script>
-import { useBankStorage } from '@/composables/localStorage';
 import { ethers } from 'ethers';
 
 export default {
@@ -156,36 +117,34 @@ export default {
       required: true
     }
   },
-  setup() {
-    const { banks, id, addTransaction, updateTransactionStatus, addTransactionMessage } = useBankStorage();
-    return {
-      banks,
-      id,
-      addTransaction,
-      updateTransactionStatus,
-      addTransactionMessage
-    };
+  async setup() {
+    const banks = await getData('entities');
+    const customers = await getData('customers')
+    return { banks, customers };
   },
   data() {
     return {
       loggedIn: false,
-      selectedUser: null,
+      selectedCustomer: '',
       transferAmount: '',
       transferRecipient: ''
     };
   },
   computed: {
-    selectedBankName() {
-      return this.selectedBank.localeCompare('Bank USA') === 0 ? 'bankUSA' : 'bankEU';
+    bank() {
+      return this.banks.find(obj => obj.name === this.selectedBank);
     },
-    nonSelectedBankName() {
-      return this.selectedBank.localeCompare('Bank USA') === 0 ? 'bankEU' : 'bankUSA';
+    customer() {
+      return this.customers.find(obj => obj.name === this.selectedCustomer)
     },
-    currencySymbol() {
-      return this.selectedBank.localeCompare('Bank USA') === 0 ? '$' : '€';
+    availableCustomers() {
+      return this.selectedBank.localeCompare('Bank USA') === 0 ? ['Alice', 'Charlie'] : ['Bob', 'Diana']
     },
-    notCurrencySymbol() {
-      return this.selectedBank.localeCompare('Bank USA') === 0 ? '€' : '$';
+    otherCustomers() {
+      return this.selectedBank.localeCompare('Bank EU') === 0 ? ['Alice', 'Charlie'] : ['Bob', 'Diana']
+    },
+    otherCurrenncy() {
+      return this.bank.currency.toString().localeCompare('$') === 0 ? '€' : '$';
     }
   },
   methods: {
@@ -193,20 +152,20 @@ export default {
       this.loggedIn = true;
     },
     logOut() {
-      this.selectedUser = null;
+      this.selectedCustomer = '';
       this.transferAmount = '';
       this.transferRecipient = '';
       this.loggedIn = false;
     },
     async startTransaction() {
-      if (this.transferAmount > 0 && this.transferAmount <= this.selectedUser.balance && this.transferRecipient.length !== 0) {
+      if (this.transferAmount > 0 && this.transferAmount <= this.customer.balance && this.transferRecipient.length !== 0) {
         const euWallet = new ethers.Wallet(this.banks.bankEU.privateKey);
         const usaWallet = new ethers.Wallet(this.banks.bankUSA.privateKey);
         const gatewayWallet = new ethers.Wallet(this.banks.gateway.privateKey);
         const wallets = [euWallet, usaWallet, gatewayWallet];
 
         // Initiate transaction
-        this.selectedUser.balance -= this.transferAmount;
+        this.customer.balance -= this.transferAmount;
 
         // 0. Mint transaction ticket
         const ticketId = 'ticketID'; // TODO contract call await controller.mintTicket(...)
@@ -221,7 +180,7 @@ export default {
           id: ticketId,
           amount: this.transferAmount,
           recipient: this.transferRecipient,
-          sender: this.selectedUser,
+          sender: this.customer,
           status: 'initiated',
           messages: [message]
         };

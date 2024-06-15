@@ -1,6 +1,6 @@
-import { xsdToProto } from '../src/index';
-import fs from 'fs';
-import path from 'path';
+const { xsdToProto } = require('../src/index');
+const fs = require('fs');
+const path = require('path');
 
 describe('XSD to Proto Converter', () => {
     let xsdData;

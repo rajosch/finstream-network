@@ -4,13 +4,6 @@
       v-if="!loggedIn"
       class="w-full max-w-md p-8 bg-white rounded shadow-lg"
     >
-      <h2 class="text-2xl font-bold mb-4 text-center text-gray-700">
-        Finstream Dashboard
-      </h2>
-      <label
-        for="bank-select"
-        class="block text-lg mb-2 text-gray-500"
-      >Select Bank:</label>
       <select
         id="bank-select"
         v-model="selectedBank"
@@ -41,8 +34,11 @@
       v-else
       class="w-2/3 max-w-5xl p-8 bg-white rounded shadow-lg relative"
     >
-      <div class="absolute top-4 left-4 text-gray-700 text-lg font-semibold">
-        {{ selectedBank }}
+      <div class="text-gray-700 text-lg font-semibold flex items-center gap-x-5 mb-5">
+        {{ bank.name }}
+        <span class="text-sm font-normal">
+          {{ bank.address }}
+        </span>
       </div>
       <div class="absolute top-4 right-4 text-gray-700">
         <button
@@ -52,58 +48,13 @@
           Log Out
         </button>
       </div>
-      <h2 class="text-2xl font-bold mb-4 text-center text-gray-700">
-        Finstream Dashboard
-      </h2>
       <div class="grid grid-cols-2">
-        <div class="bg-red-200">
+        <div>
           <h3 class="text-xl font-semibold mb-2 text-gray-700">
             Transactions
           </h3>
           <div class="text-gray-500 h-72 overflow-auto w-full">
-            <div 
-              v-for="transaction in banks[selectedBankName].transactions"
-              :key="transaction.id"
-            >
-              <div class="flex gap-x-2 cursor-pointer">
-                <ChevronRightIcon class="h-5 w-5" />
-                <ChevronDownIcon class="h-5 w-5" />
-                {{ transaction.id }}
-                <div
-                  :title="transaction.status" 
-                >
-                  <DotsHorizontalIcon
-                    v-if="transaction.status.localeCompare('pending') === 0"
-                    class="h-6 w-6" 
-                  />
-                  <XIcon
-                    v-if="transaction.status.localeCompare('failed') === 0"
-                    class="h-6 w-6" 
-                  />
-                  <CheckIcon
-                    v-if="transaction.status.localeCompare('completed') === 0"
-                    class="h-6 w-6" 
-                  />
-                </div>
-              </div>
-              <div class="ml-5">
-                <div>
-                  Sender: {{ transaction.sender.name }}
-                </div>
-                <div>
-                  Recipient: {{ transaction.recipient.name }}
-                </div>
-                <div>
-                  Messages
-                  <div 
-                    v-for="message in transaction.messages"
-                    :key="message"
-                  >
-                    {{ message }}
-                  </div>
-                </div>
-              </div>
-            </div>
+            TODO DISPLAY TRANSACTIONS
           </div>
         </div>
         <div>
@@ -117,20 +68,10 @@
 </template>
 
 <script>
-import { useBankStorage } from '@/composables/localStorage';
-import { DotsHorizontalIcon, XIcon, CheckIcon, ChevronRightIcon, ChevronDownIcon } from '@heroicons/vue/outline';
-
 export default {
-    components: {
-      DotsHorizontalIcon,
-      XIcon,
-      CheckIcon, 
-      ChevronRightIcon, 
-      ChevronDownIcon
-    },
-    setup() {
-        const { banks } = useBankStorage();
-        return { banks };
+    async setup() {
+      const banks = await getData('entities');
+      return { banks };
     },
     data() {
       return {
@@ -143,11 +84,8 @@ export default {
       };
     },
     computed: {
-      currencySymbol() {
-        return this.selectedBank.localeCompare('Bank USA') === 0 ? '$' : '€';
-      },
-      selectedBankName() {
-        return this.selectedBank.localeCompare('Bank USA') === 0 ? 'bankUSA' : 'bankEU';
+      bank() {
+        return this.banks.find(obj => obj.name === this.selectedBank);
       },
     },
     methods: {

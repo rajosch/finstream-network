@@ -1,4 +1,4 @@
-import { StandardMerkleTree } from '@openzeppelin/merkle-tree';
+const { StandardMerkleTree } = require('@openzeppelin/merkle-tree');
 
 /**
  * Builds a Merkle tree from the given values and leaf encoding.

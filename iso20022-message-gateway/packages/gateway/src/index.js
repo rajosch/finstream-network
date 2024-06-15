@@ -1,23 +1,23 @@
-import { encryptFile } from "../../multi-party-encrypter";
-import { validateXML, xmlToBin } from "../../xml-processor";
-import xmlbuilder from 'xmlbuilder';
+const { encryptFile } = require("../../multi-party-encrypter");
+const { validateXML, xmlToBin } = require("../../xml-processor");
+const xmlbuilder = require('xmlbuilder');
 
-export async function createMessage(messageType, wallets, messageArgs, ticketId, xsdContent, root) {
+async function createMessage(messageType, wallets, messageArgs, ticketId, xsdContent, root) {
   let message = null;
 
-  if(messageType.localeCompare('pain.001.001.12') === 0) {
+  if (messageType.localeCompare('pain.001.001.12') === 0) {
     message = createPain00100112(messageArgs);
-  }else if(messageType.localeCompare('fxtr.014.001.05') === 0) {
+  } else if (messageType.localeCompare('fxtr.014.001.05') === 0) {
     message = createFxtr01400105(messageArgs);
-  }else if(messageType.localeCompare('pacs.002.001.14') === 0) {
+  } else if (messageType.localeCompare('pacs.002.001.14') === 0) {
     message = createPacs00200114(messageArgs);
   }
 
-  if(message) {
-    if(validateXML(message, xsdContent)) {
+  if (message) {
+    if (validateXML(message, xsdContent)) {
       // Parse XML to binary
       const buffer = await xmlToBin(message, root, 'Document');
-  
+
       // Encrypt message
       return encryptFile(buffer, wallets, null, ticketId);
     }
@@ -193,3 +193,11 @@ function createPacs00200114({
 
   return xml;
 }
+
+module.exports = {
+  helloWorld,
+  createMessage,
+  createPain00100112,
+  createFxtr01400105,
+  createPacs00200114
+};

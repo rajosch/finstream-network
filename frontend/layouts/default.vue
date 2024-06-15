@@ -5,12 +5,15 @@
       :class="{'bg-opacity-50': isTransparent}"
     >
       <nav class="container mx-auto px-4 py-2 flex justify-between items-center">
-        <NuxtLink to="/">
+        <NuxtLink
+          to="/"
+          class="w-1/3"
+        >
           <div class="text-2xl font-bold">
-            Finstream
+            Finstream Network
           </div>
         </NuxtLink>
-        <ul class="flex space-x-4">
+        <ul class="flex space-x-4 w-1/3 justify-center">
           <NuxtLink
             to="#about"
             class="opacity-75 hover:opacity-100"
@@ -24,9 +27,9 @@
             Try PoC
           </NuxtLink>
         </ul>
-        <ul class="flex space-x-4">
+        <ul class="flex space-x-4 w-1/3 justify-end">
           <NuxtLink
-            to="https://github.com/rajosch/finstream-blokmagic"
+            to="https://github.com/rajosch/finstream-network"
             target="_blank"
           >
             <img

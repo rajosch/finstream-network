@@ -3,16 +3,10 @@
     <section class="bg-slate-900 text-white py-20 h-[50vh] flex items-center justify-center">
       <div class="container mx-auto px-4 text-center">
         <h1 class="text-4xl md:text-7xl font-bold mb-4">
-          Finstream
+          Finstream Network
         </h1>
-        <p class="mb-12">
-          <NuxtLink
-            to="https://chain.link/hackathon"
-            target="_blank"
-            class="text-lg md:text-2xl"
-          >
-            Block Magic - A Chainlink Hackathon
-          </NuxtLink>
+        <p class="mb-12 text-lg md:text-2xl">
+          Integrating Web 3 With Traditional Finance
         </p>
         <div class="flex justify-center gap-x-8">
           <NuxtLink
@@ -36,7 +30,7 @@
       class="p-10 lg:px-56 h-[75vh] flex flex-col justify-center"
     >
       <h2 class="text-2xl md:text-4xl font-bold mb-4 text-center">
-        What is Finstream?
+        What is Finstream Network?
       </h2>
       <p class="text-lg md:text-xl mb-8 text-center">
         Finstream is designed to facilitate seamless cross-border payments using blockchain technology. It provides a secure, efficient, and transparent way to transfer money internationally.
@@ -59,7 +53,7 @@
       <div class="bg-gray-800 text-white py-4">
         <div class="container mx-auto flex justify-between items-center px-4">
           <h1 class="text-2xl font-bold">
-            Chainlink - Block Magic PoC
+            Proof of Concept
           </h1>
           <div>
             <select
@@ -90,11 +84,40 @@
         </div>
       </div>
     </section>
+        
+    <section id="database">
+      <div class="bg-gray-800 text-white py-4">
+        <div class="container mx-auto flex justify-between items-center px-4">
+          <h1 class="text-2xl font-bold">
+            Database
+          </h1>
+          <div>
+            <select
+              id="component-select"
+              v-model="selectedTable"
+              class="bg-gray-700 text-white p-2 rounded"
+            >
+              <option value="messages">
+                Messages
+              </option>
+              <option value="customers">
+                Customers
+              </option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="bg-gray-300 h-[60vh] grid place-items-center">
+        <div class="w-full">
+          <DisplayData :table="selectedTable" />
+        </div>
+      </div>
+    </section>
 
     <footer class="bg-gray-800 text-white py-8">
       <div class="container mx-auto px-4 text-center">
         <p class="mb-2">
-          &copy; 2024 Finstream. Made with coffee.
+          &copy; 2024 Finstream Network. Made with coffee.
         </p>
         <div class="flex flex-col justify-center">
           <div class="flex justify-center gap-x-2">
@@ -134,7 +157,8 @@ export default {
   data() {
     return {
       selectedComponent: 'Bank USA',
+      selectedTable: 'messages',
     };
-  },
+  }
 };
 </script>

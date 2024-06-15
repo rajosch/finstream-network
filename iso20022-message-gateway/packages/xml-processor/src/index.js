@@ -1,9 +1,9 @@
-import xml2js from 'xml2js';
-import fs from 'fs';
-import path from 'path';
-import os from 'os';
-import { promisify } from 'util';
-import libxmljs from 'libxmljs2';
+const xml2js = require('xml2js');
+const fs = require('fs');
+const path = require('path');
+const os = require('os');
+const { promisify } = require('util');
+const libxmljs = require('libxmljs2');
 
 const writeFileAsync = promisify(fs.writeFile);
 const unlinkAsync = promisify(fs.unlink);

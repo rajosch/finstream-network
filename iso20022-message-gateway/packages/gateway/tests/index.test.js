@@ -1,16 +1,16 @@
-import { createMessage } from '../src';
-import { encryptFile } from '../../multi-party-encrypter';
-import { validateXML, xmlToBin } from '../../xml-processor';
-import protobuf from 'protobufjs';
-import path from 'path';
-import fs from 'fs';
+const { createMessage } = require('../src');
+const { encryptFile } = require('../../multi-party-encrypter');
+const { validateXML, xmlToBin } = require('../../xml-processor');
+const protobuf = require('protobufjs');
+const path = require('path');
+const fs = require('fs');
 
-jest.mock('../../xml-processor/src', () => ({
+jest.mock('../../xml-processor', () => ({
   validateXML: jest.fn(),
   xmlToBin: jest.fn(),
 }));
 
-jest.mock('../../multi-party-encrypter/src', () => ({
+jest.mock('../../multi-party-encrypter', () => ({
   encryptFile: jest.fn(),
 }));
 
@@ -47,7 +47,7 @@ describe('createMessage', () => {
     const protoPath = path.join(__dirname, '../../../../files/protobuf', `${messageType}.proto`);
 
     const root = protobuf.loadSync(protoPath);
-    const xsdContent = fs.readFileSync(xsdPath);
+    const xsdContent = fs.readFileSync(xsdPath, 'utf-8');
     
     validateXML.mockReturnValue(true);
     xmlToBin.mockResolvedValue(Buffer.from('binary data'));
@@ -95,8 +95,7 @@ describe('createMessage', () => {
     const protoPath = path.join(__dirname, '../../../../files/protobuf', `${messageType}.proto`);
 
     const root = protobuf.loadSync(protoPath);
-    const xsdContent = fs.readFileSync(xsdPath);
-    
+    const xsdContent = fs.readFileSync(xsdPath, 'utf-8');
     
     validateXML.mockReturnValue(false);
 

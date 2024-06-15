@@ -1,7 +1,7 @@
-import { validateXML, xmlToBin, binToXML } from '../src/index';
-import fs from 'fs';
-import path from 'path';
-import protobuf from 'protobufjs';
+const { validateXML, xmlToBin, binToXML } = require('../src/index');
+const fs = require('fs');
+const path = require('path');
+const protobuf = require('protobufjs');
 
 describe('XML Processor Library', () => {
     beforeAll(() => {

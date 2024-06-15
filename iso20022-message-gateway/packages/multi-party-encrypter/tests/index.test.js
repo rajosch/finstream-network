@@ -1,7 +1,7 @@
-import { encryptFile, decryptFile } from '../src/index';
-import fs from 'fs';
-import path from 'path';
-import { ethers } from 'ethers';
+const { encryptFile, decryptFile } = require('../src/index');
+const fs = require('fs');
+const path = require('path');
+const ethers = require('ethers');
 
 // Constants
 const bankA = ethers.Wallet.createRandom();
