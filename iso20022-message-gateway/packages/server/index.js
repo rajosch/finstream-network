@@ -153,6 +153,45 @@ app.get('/messages', (req, res) => {
   });
 });
 
+// Create message and save it to database
+app.post('/create-message', async (req, res) => {
+  const { messageType, wallets, messageArgs, ticketId, xsdContent, root, parent } = req.body;
+
+  try {
+    const encryptedMessage = await createMessage(messageType, wallets, messageArgs, ticketId, xsdContent, root, parent);
+
+    if (encryptedMessage) {
+      // Insert into messages table
+      const messageStmt = db.prepare('INSERT INTO messages (encryptedData, iv, messageHash, ticketId, parent) VALUES (?, ?, ?, ?, ?)');
+      messageStmt.run(encryptedMessage.encryptedData, encryptedMessage.iv, encryptedMessage.messageHash, ticketId, encryptedMessage.parent, function(err) {
+        if (err) {
+          return res.status(500).send('Failed to insert message');
+        }
+
+        const messageId = this.lastID;
+
+        // Insert into transactions table
+        const transactionStmt = db.prepare('INSERT INTO transactions (messageId, status, createdAt) VALUES (?, ?, ?)');
+        transactionStmt.run(messageId, 'created', new Date(), function(err) {
+          if (err) {
+            return res.status(500).send('Failed to insert transaction');
+          }
+
+          res.status(201).send('Message and transaction created successfully');
+        });
+        transactionStmt.finalize();
+      });
+      messageStmt.finalize();
+    } else {
+      res.status(400).send('Message creation failed');
+    }
+  } catch (error) {
+    console.error('Error creating message:', error);
+    res.status(500).send('Server error');
+  }
+});
+
+
 // Route to list all tables
 app.get('/tables', (req, res) => {
   db.all("SELECT name FROM sqlite_master WHERE type='table'", [], (err, rows) => {
@@ -227,4 +266,26 @@ app.post('/customers', (req, res) => {
 
 app.listen(port, () => {
   console.log(`Server listening at http://localhost:${port}`);
+});
+
+// Route to update customer balance
+app.put('/customers/:id/balance', (req, res) => {
+  const customerId = req.params.id;
+  const { newBalance } = req.body;
+
+  if (typeof newBalance !== 'number') {
+    return res.status(400).send('New balance must be a number');
+  }
+
+  const stmt = db.prepare('UPDATE customers SET balance = ? WHERE id = ?');
+  stmt.run(newBalance, customerId, function(err) {
+    if (err) {
+      return res.status(500).send('Failed to update balance');
+    }
+    if (this.changes === 0) {
+      return res.status(404).send('Customer not found');
+    }
+    res.status(200).send('Balance updated successfully');
+  });
+  stmt.finalize();
 });

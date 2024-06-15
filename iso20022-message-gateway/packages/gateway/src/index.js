@@ -2,7 +2,7 @@ const { encryptFile } = require("../../multi-party-encrypter");
 const { validateXML, xmlToBin } = require("../../xml-processor");
 const xmlbuilder = require('xmlbuilder');
 
-async function createMessage(messageType, wallets, messageArgs, ticketId, xsdContent, root) {
+async function createMessage(messageType, wallets, messageArgs, ticketId, xsdContent, root, parent) {
   let message = null;
 
   if (messageType.localeCompare('pain.001.001.12') === 0) {
@@ -19,7 +19,7 @@ async function createMessage(messageType, wallets, messageArgs, ticketId, xsdCon
       const buffer = await xmlToBin(message, root, 'Document');
 
       // Encrypt message
-      return encryptFile(buffer, wallets, null, ticketId);
+      return encryptFile(buffer, wallets, parent, ticketId);
     }
   }
 
@@ -195,7 +195,6 @@ function createPacs00200114({
 }
 
 module.exports = {
-  helloWorld,
   createMessage,
   createPain00100112,
   createFxtr01400105,

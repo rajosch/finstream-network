@@ -53,7 +53,7 @@ describe('createMessage', () => {
     xmlToBin.mockResolvedValue(Buffer.from('binary data'));
     encryptFile.mockResolvedValue('encrypted data');
 
-    const result = await createMessage(messageType, wallets, messageArgs, ticketId, xsdContent, root);
+    const result = await createMessage(messageType, wallets, messageArgs, ticketId, xsdContent, root, null);
 
     expect(validateXML).toHaveBeenCalledWith(expect.any(String), xsdContent);
     expect(xmlToBin).toHaveBeenCalledWith(expect.any(String), expect.any(Object), 'Document');
@@ -99,7 +99,7 @@ describe('createMessage', () => {
     
     validateXML.mockReturnValue(false);
 
-    const result = await createMessage(messageType, wallets, messageArgs, ticketId, xsdContent, root);
+    const result = await createMessage(messageType, wallets, messageArgs, ticketId, xsdContent, root, null);
 
     expect(validateXML).toHaveBeenCalledWith(expect.any(String), xsdContent);
     expect(result).toBeNull();

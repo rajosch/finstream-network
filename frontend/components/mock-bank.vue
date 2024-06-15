@@ -49,7 +49,7 @@
         </button>
       </div>
       <div class="grid grid-cols-5 gap-x-8">
-        <div class="col-span-3">
+        <div class="col-span-2">
           <h3 class="text-lg font-semibold mb-2 text-gray-700">
             Account Balance
           </h3>
@@ -96,7 +96,7 @@
             Transfer
           </button>
         </div>
-        <div class="col-span-2 flex flex-col gap-y-1 h-84 overflow-auto">
+        <div class="col-span-3 flex flex-col gap-y-1 h-84 overflow-auto">
           <h3 class="text-lg font-semibold mb-2 text-gray-700">
             Transfers
           </h3>
@@ -158,120 +158,157 @@ export default {
       this.loggedIn = false;
     },
     async startTransaction() {
-      if (this.transferAmount > 0 && this.transferAmount <= this.customer.balance && this.transferRecipient.length !== 0) {
-        const euWallet = new ethers.Wallet(this.banks.bankEU.privateKey);
-        const usaWallet = new ethers.Wallet(this.banks.bankUSA.privateKey);
-        const gatewayWallet = new ethers.Wallet(this.banks.gateway.privateKey);
-        const wallets = [euWallet, usaWallet, gatewayWallet];
-
-        // Initiate transaction
-        this.customer.balance -= this.transferAmount;
-
-        // 0. Mint transaction ticket
-        const ticketId = 'ticketID'; // TODO contract call await controller.mintTicket(...)
-
-        let messageType = 'pain.001.001.12'
-        let messageArgs = {};
-
-        let message = createMessage(messageType, messageArgs);
-
-        // 4. Create transaction
-        const transaction = {
-          id: ticketId,
-          amount: this.transferAmount,
-          recipient: this.transferRecipient,
-          sender: this.customer,
-          status: 'initiated',
-          messages: [message]
-        };
-
-        // 5. Add transaction to 'data base'
-        this.addTransaction(this.selectedBankName, transaction);
-
-        await this.sleep(500);
-
-
-        messageArgs = {};
-        messageType = 'pain.001.001.12'
-
-        message = createMessage(messageType, messageArgs);
-
-        // TODO update merkle root on chain
-        this.addTransactionMessage(this.selectedBankName, transaction.id, message);
-        this.updateTransactionStatus(this.selectedBankName, transaction.id, 'forwarded');
-
-        await this.sleep(500);
-        const exchangeRate = 0.9; // TODO update query exchange rate from chain
-
-        
-        messageArgs = {};
-        messageType = 'fxtr.014.001.05'
-
-        message = createMessage(messageType, messageArgs);
-
-        // TODO update merkle root on chain
-        this.addTransactionMessage(this.selectedBankName, transaction.id, message);
-        this.updateTransactionStatus(this.selectedBankName, transaction.id, 'set exchange rate');
-
-        await this.sleep(500);
-
-        // Bank accepts exchange rate
-
-        // TODO update merkle root on chain
-        this.updateTransactionStatus(this.selectedBankName, transaction.id, 'accept exchange rate');
-
-        await this.sleep(500);
-
-        // Native currency exchanged for target currency
-        // TODO call controller to start transfer
-        messageArgs = {};
-        messageType = 'pain.001.001.12'
-
-        message = createMessage(messageType, messageArgs);
-
-        // TODO update merkle root on chain
-        this.addTransactionMessage(this.selectedBankName, transaction.id, message);
-        this.updateTransactionStatus(this.selectedBankName, transaction.id, 'transfer');
-
-        // TODO add transaction hash to transaction object 
-        await this.sleep(500);
-
-        // Money sent
-        messageArgs = {};
-        messageType = 'pain.001.001.12'
-
-        message = createMessage(messageType, messageArgs);
-
-        // TODO update merkle root on chain
-        this.addTransactionMessage(this.selectedBankName, transaction.id, message);
-        this.updateTransactionStatus(this.selectedBankName, transaction.id, 'sent');
-
-        await this.sleep(500);
-        // Transaction completed
-        // TODO add pacs message
-        messageArgs = {};
-        messageType = 'pacs.002.001.14'
-
-        message = createMessage(messageType, messageArgs);
-
-        // TODO update merkle root on chain
-        this.addTransactionMessage(this.selectedBankName, transaction.id, message);
-        this.updateTransactionStatus(this.selectedBankName, transaction.id, 'completed');
-
-        this.transferRecipient.balance += this.transferAmount * exchangeRate; // adjust calculation depending on switch direction
-      } else {
-        alert("Please enter a positive amount and select a recipient.");
+      if(this.transferAmount <= 0 || this.transferAmount >= this.customer.balance || this.transferRecipient.length === 0) {
+        alert('Transaction could not be executed because the amount or the recipient was not valid.');
       }
 
+      // Get Bank customers
+      const debtor = this.customer;
+      const creditor = this.customers.find(obj => obj.name === to);
+
+      // Get entity wallets
+      const euWallet = new ethers.Wallet((this.banks.find(obj => obj.name === 'EU Bank')).privateKey);
+      const usaWallet = new ethers.Wallet((this.banks.find(obj => obj.name === 'USA Bank')).privateKey);
+      const gatewayWallet = new ethers.Wallet((this.banks.find(obj => obj.name === 'gateway')).privateKey);
+      const wallets = [euWallet, usaWallet, gatewayWallet];
+
+      // 1. Debit debtor account
+      const newDebtorAmount = debtor.balance - this.transferAmount;
+      await updateCustomerBalance(debtor.id, newDebtorAmount);
+
+
+      // 1.1. Update 'customer-transaction' table
+      /**
+       * TODO
+       * just show for sender 
+       * status 'transfer-initiated'
+       */
+
+
+      // 2. Mint transaction ticket
+      /**
+       * TODO mint ticket and wait for response to get ticket id
+       * const ticketId = await controller.mintTicket(...);
+       */
+      const ticketId = 'ticketId';
+
+      // 3. Create first message (pain.001.001.12 - debtor to bank) and save it to database
+      const messageId = await createMessage(
+        'pain.001.001.12', 
+        wallets, 
+        {}, // TODO get message args
+        ticketId,
+        {}, // TODO handle xsd content on server side
+        {}, // TODO handle proto content on server side
+        null
+      );
+
+      // 4. create merkle root
+      /**
+       * TODO set up merkle root creation on gateway
+       */
+      let merkleRoot = undefined;
+
+      // 5. update merkle root on chain
+      /**
+       * await updateMerkleRoot(tokenId, merkleRoot);
+       */
+
+      // 6. Update customer transaction status to 'forwarded'
+
+      await this.sleep(500);
+
+      // 7. Query exchange rate
+      const exchangeRate = 0.9; // TODO await getExchangeRate(...)
+
+      // 8. Create second message (fxtr.014.001.05 - gateway to bank) and save it to database
+      await createMessage(
+        'fxtr.014.001.05', 
+        wallets, 
+        {}, // TODO get message args
+        ticketId,
+        {}, // TODO handle xsd content on server side
+        {}, // TODO handle proto content on server side
+        messageId
+      );
+
+      // 9. Update merkle root and save it on-chain
+      merkleRoot = undefined; // TODO
+      // await updateMerkleRoot(tokenId, mekleRoot);
+
+      // 10. Update customer transaction status to 'exchange rate set'
+
+      await this.sleep(500);
+
+      // 11. Create third message (pain.001.001.12 - bank to gateway)
+      await createMessage(
+        'pain.001.001.12', 
+        wallets, 
+        {}, // TODO get message args
+        ticketId,
+        {}, // TODO handle xsd content on server side
+        {}, // TODO handle proto content on server side
+        messageId
+      );
+
+      // 12. Update merkle root and save it on-chain
+      merkleRoot = undefined; // TODO
+      // await updateMerkleRoot(tokenId, mekleRoot);
+
+      
+      // 13. Transfer funds
+      // TODO call to treasury to transfer funds from one bank to the other
+
+      // 14. Update customer transaction status to 'transfering funds'
+
+      await this.sleep(500);
+
+      // 15. Create 4th message (pain.001.001.12 - gateway to second bank)
+      await createMessage(
+        'pain.001.001.12', 
+        wallets, 
+        {}, // TODO get message args
+        ticketId,
+        {}, // TODO handle xsd content on server side
+        {}, // TODO handle proto content on server side
+        messageId
+      );
+
+      // 16. Update merkle root and save it on-chain
+      merkleRoot = undefined; // TODO
+      // await updateMerkleRoot(tokenId, mekleRoot);
+
+      await this.sleep(500);
+
+      // 17. Create 5th message (pain.001.001.12 - gateway to second bank)
+      await createMessage(
+        'pacs.002.001.14', 
+        wallets, 
+        {}, // TODO get message args
+        ticketId,
+        {}, // TODO handle xsd content on server side
+        {}, // TODO handle proto content on server side
+        messageId
+      );
+
+      // 18. Update merkle root and save it on-chain
+      merkleRoot = undefined; // TODO
+      // await updateMerkleRoot(tokenId, mekleRoot);
+
+
+      // 19. Debit debtor account
+      const newCreditorAmount = creditor.balance - this.transferAmount;
+      await updateCustomerBalance(creditor.id, newCreditorAmount);
+
+      // 20. Update customer transaction status to 'completed' + include the receiver too now (showcases as funds received in their UI)
+      // TODO update merkle root on chain
+
+      // Reset values
       this.transferAmount = '';
       this.transferRecipient = '';
     },
     async sleep(ms) {
       return new Promise(resolve => setTimeout(resolve, ms));
-    },
-    async loadFile(filePath) {
-      const response = await fetch(filePath);
-      return response.text();
     }
   }
 };

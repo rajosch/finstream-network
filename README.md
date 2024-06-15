@@ -1,79 +1,44 @@
 # FinStream - Network
 
-## Milestones
+## TODO
 
-- [X] XML to Protobuf parser
+### Gateway
 
-  - [X] validate ISO20022 XML message
-  - [X] create all of the sample XML messages for the PoC
-  - [X] hardcode .proto files for xml messages
-  - [X] xmlToBin parser
-  - [X] binToXml parser
-- [ ] Message storage & validation
+* [ ] Create Message function should return the ticket ID or an error message
+* [ ] Make sure the XSD content is handled on the server side
+* [ ] handle merkle root creation on server side
 
-  - [X] multi part encrypter for binary ISO20022 messages
-  - [X] Merkle tree validator (off-chain)
-  - [ ] local storage
-    - [ ] Bank Objects (Bank USA & Bank EUR)
-      - [X] Customer Objects
-        - [X] ID
-        - [X] Name
-        - [X] Money in bank account
-      - [ ] Transactions (array of objects)
-        - [X] ID
-        - [X] Amount
-        - [ ] Messages (array of objects)
-          - [ ] encrypted data
-          - [ ] symmetric key (array of objects)
-            - [ ] encrypted key
-            - [ ] iv
-            - [ ] salt
-            - [ ] publicKey
-          - [ ] iv
-          - [ ] messageHash
-          - [ ] ticketId
-          - [ ] parent
-        - [ ] Status
-  - [X] Create local storage when starting the page
-  - [ ] Update local storage when appropriate
-- [ ] Smart Contracts
+### Frontend
 
-  - [X] architecture
-  - [X] adjust `MsgTicket` smart contract to handle merkle-trees correctly
-  - [X] improve smart contract access rights `Role-Based Access Control (RBAC)`
-  - [X] mock-up USDC & EURC contracts
-  - [X] improve `Treasury`smart contract
+* [X] Plan out transaction steps
+* [ ] Set up the encryption to be bank/gateway bank/bank/gateway where appropriate
+* [ ] Setup up transaction
+  * [ ] Realize transfer without blockchain first
+  * [ ] Add blockchain calls to transaction
+* [ ] Set up state management & make database info global
+* [ ] Add fuctions to update database info
+* [ ] Add `sent and recieved transactions (including status)` for customer interface
+* [ ] Make `explanation video` and add it to the `About` section
 
-    - [X] Implement the **Chainlink Price Feed** for up to date price conversion
-  - [ ] testing
+### Blockchain
 
-    - [ ] hardhat tests
-  - [ ] integrate into frontend
-  - [ ] Since there is no EUR/USD price feed on the Fuji Testnet LINK/AVAX will acts as a price feed place holder for them
-  - [ ] to simplify things both bank usa and bank europe have a considerable amount of liquidity they can use
-  - [ ] Deploy to Fuji Testnet
-- [ ] Gateway
+* [ ] Spin up local node with Hardhat
+* [ ] Implement `Chainlink Price Feed`for Ethereum EUR/USD | USD/EUR
+* [ ] Make sure EURC and USDC mock coins are deployed to local node and function
+* [ ] Adjust treasury
 
-  - [X] message creation
-  - [X] message parsing
-  - [X] message encrpytion
-  - [ ] create merke tree / update merkle tree
-  - [ ] mint ticket / update merkle tree
-  - [ ] return (updated) merkle tree
-  - [ ] read data
-- [ ] Frontend
+  * [ ] For PoC there is always enough liquidity in the pool, the banks don't send anything themselves (they get credit/debt)
+  * [ ] There is a `debt` but they will never reach the end of it
+  * [ ] add getExchagenRate call
+  * [ ] add transferFunds
 
-  - [ ] UPDATE VIDEO ID!!!
-  - [ ] add information to about section (capabilities, reason, etc?)
-  - [ ] add links to blockexplorer for contracts
-  - [ ] add wallets [bank-eu, bank-usa] (private keys 'oh schreck')
-  - [ ] add contract calls (ethers)
-  - [ ] database write & read information
+### Backend
 
-### Future Work
+* [ ] Add IBAN to customer table
+* [ ] Add extra table with `sender`, `receiver` and `status`
+* [ ] Adjust tables to handle the customers of the different banks in different tables
+* [ ] Add logic to query messages connected to messageId (one transaction)
 
-- [ ] Avalanche Subnet Architecture
-- [ ] Connect Chainlink APIs with Subnet
-- [ ] general .xsd to .proto parser
-- [ ] IPFS
-- [ ] Chainlink Automation
+## Future Work
+
+TODO
