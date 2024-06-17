@@ -33,6 +33,7 @@ db.serialize(() => {
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     entityId INTEGER,
     name TEXT,
+    iban TEXT,
     balance INTEGER,
     FOREIGN KEY(entityId) REFERENCES entities(id)
   )`);
@@ -43,6 +44,16 @@ db.serialize(() => {
     entityId INTEGER,
     FOREIGN KEY(messageId) REFERENCES messages(id),
     FOREIGN KEY(entityId) REFERENCES entities(id)
+  )`);
+
+  db.run(`CREATE TABLE IF NOT EXISTS transactions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    messageId INTEGER,
+    sender TEXT,
+    receiver TEXT,
+    amount INTEGER,
+    status TEXT,
+    FOREIGN KEY(messageId) REFERENCES messages(id)
   )`);
 });
 

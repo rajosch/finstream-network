@@ -195,8 +195,5 @@ function createPacs00200114({
 }
 
 module.exports = {
-  createMessage,
-  createPain00100112,
-  createFxtr01400105,
-  createPacs00200114
+  createMessage
 };

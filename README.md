@@ -2,12 +2,6 @@
 
 ## TODO
 
-### Gateway
-
-* [ ] Create Message function should return the ticket ID or an error message
-* [ ] Make sure the XSD content is handled on the server side
-* [ ] handle merkle root creation on server side
-
 ### Frontend
 
 * [X] Plan out transaction steps
@@ -32,12 +26,14 @@
   * [ ] add getExchagenRate call
   * [ ] add transferFunds
 
-### Backend
+### Backend / Gateway
 
-* [ ] Add IBAN to customer table
-* [ ] Add extra table with `sender`, `receiver` and `status`
-* [ ] Adjust tables to handle the customers of the different banks in different tables
+* [X] Add IBAN to customer table
+* [X] Add extra table with `sender`, `receiver` and `status`
 * [ ] Add logic to query messages connected to messageId (one transaction)
+* [X] Create Message route should return the ticket ID or an error message
+* [ ] handle merkle tree creation on server side
+* [X] Make sure the XSD content is handled on the server side
 
 ## Future Work
 

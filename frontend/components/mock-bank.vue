@@ -109,6 +109,7 @@
 
 <script>
 import { ethers } from 'ethers';
+import store from "~/store";
 
 export default {
   props: {
@@ -118,9 +119,11 @@ export default {
     }
   },
   async setup() {
-    const banks = await getData('entities');
-    const customers = await getData('customers')
-    return { banks, customers };
+    const EUBank = store.EUBank;
+    const USABank = store.USABank;
+    const EUCustomers = store.EUCustomers;
+    const USACustomers = store.USACustomers;
+    return { EUBank, USABank, EUCustomers, USACustomers };
   },
   data() {
     return {

@@ -34,15 +34,13 @@ export const updateCustomerBalance = async (customerId, newBalance) => {
   }
 };
 
-export const createMessage = async (messageType, wallets, messageArgs, ticketId, xsdContent, root, parent) => {
+export const createMessage = async (messageType, wallets, messageArgs, ticketId, parent) => {
   try {
     const response = await apiClient.post('/create-message', {
       messageType,
       wallets,
       messageArgs,
       ticketId,
-      xsdContent,
-      root,
       parent
     });
     return response.data;

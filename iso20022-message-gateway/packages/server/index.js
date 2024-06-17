@@ -2,6 +2,12 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const db = require('./database');
+const path = require('path');
+const fs = require('fs');
+const protobuf = require('protobufjs');
+
+const { createMessage } = require('../gateway');
+const { buildMerkleTree } = require('../merkle-tree-validator');
 
 const app = express();
 const port = 3000;
@@ -21,8 +27,8 @@ const populateTables = () => {
       address: '0xFB78AF53Fc9BD34f9E078aCb912e8103F08C4819',
       privateKey: '0xb62244005a84f03a995f9109187cac189f3e5d124016d52c731bf119a93cc8da',
       customers: [
-        { name: 'Alice', balance: 20000 },
-        { name: 'Charlie', balance: 5000 }
+        { name: 'Alice', iban: 'US64SVBKUS6S1234567890', balance: 20000 },
+        { name: 'Charlie', iban: 'US64SVBKUS6S1234567899', balance: 5000 }
       ],
       currency: '$'
     },
@@ -32,8 +38,8 @@ const populateTables = () => {
       address: '0xe725c3F6534563483D3a0Ede818868ceBB1a8c80',
       privateKey: '0x29e23620daa4f30387565e3fea55bd415cfe8f26c1d6886ce25b801b887cc8da',
       customers: [
-        { name: 'Bob', balance: 80000 },
-        { name: 'Diana', balance: 2000 }
+        { name: 'Bob', iban: 'DE89370400440532013000', balance: 80000 },
+        { name: 'Diana', iban: 'DE89370400440532013001', balance: 2000 }
       ],
       currency: '€'
     },
@@ -54,9 +60,9 @@ const populateTables = () => {
         console.error('Error inserting entity:', err);
       } else {
         const entityId = this.lastID;
-        const customerStmt = db.prepare('INSERT INTO customers (entityId, name, balance) VALUES (?, ?, ?)');
+        const customerStmt = db.prepare('INSERT INTO customers (entityId, name, iban, balance) VALUES (?, ?, ?, ?)');
         entity.customers.forEach(customer => {
-          customerStmt.run(entityId, customer.name, customer.balance, err => {
+          customerStmt.run(entityId, customer.name, customer.iban, customer.balance, err => {
             if (err) {
               console.error('Error inserting customer:', err);
             }
@@ -153,11 +159,18 @@ app.get('/messages', (req, res) => {
   });
 });
 
-// Create message and save it to database
 app.post('/create-message', async (req, res) => {
-  const { messageType, wallets, messageArgs, ticketId, xsdContent, root, parent } = req.body;
+  const { messageType, wallets, messageArgs, ticketId, parent } = req.body;
 
   try {
+    // Load XSD and Proto files
+    const xsdPath = path.join(__dirname, '../../../../files/definitions', `${messageType}.xsd`);
+    const protoPath = path.join(__dirname, '../../../../files/protobuf', `${messageType}.proto`);
+
+    const root = protobuf.loadSync(protoPath);
+    const xsdContent = fs.readFileSync(xsdPath, 'utf-8');
+
+    // Create the message using the loaded XSD and Proto contents
     const encryptedMessage = await createMessage(messageType, wallets, messageArgs, ticketId, xsdContent, root, parent);
 
     if (encryptedMessage) {
@@ -177,7 +190,7 @@ app.post('/create-message', async (req, res) => {
             return res.status(500).send('Failed to insert transaction');
           }
 
-          res.status(201).send('Message and transaction created successfully');
+          res.status(201).send({ message: 'Message and transaction created successfully', messageId: messageId });
         });
         transactionStmt.finalize();
       });
@@ -189,6 +202,77 @@ app.post('/create-message', async (req, res) => {
     console.error('Error creating message:', error);
     res.status(500).send('Server error');
   }
+});
+
+app.get('/messages/:ticketId/connected', (req, res) => {
+  const ticketId = req.params.ticketId;
+
+  const initialQuery = 'SELECT * FROM messages WHERE ticketId = ?';
+
+  db.get(initialQuery, [ticketId], (err, rootMessage) => {
+    if (err) {
+      return res.status(500).send(err.message);
+    }
+    if (!rootMessage) {
+      return res.status(404).send('Message not found');
+    }
+
+    const query = `
+      WITH RECURSIVE connected_messages AS (
+        SELECT * FROM messages WHERE id = ?
+        UNION ALL
+        SELECT m.* FROM messages m
+        INNER JOIN connected_messages cm ON m.parent = cm.id
+      )
+      SELECT * FROM connected_messages ORDER BY id;
+    `;
+
+    db.all(query, [rootMessage.id], (err, rows) => {
+      if (err) {
+        return res.status(500).send(err.message);
+      }
+      res.send(rows);
+    });
+  });
+});
+
+app.get('/messages/:ticketId/create-merkle-tree', (req, res) => {
+  const ticketId = req.params.ticketId;
+
+  const initialQuery = 'SELECT * FROM messages WHERE ticketId = ?';
+
+  db.get(initialQuery, [ticketId], (err, rootMessage) => {
+    if (err) {
+      return res.status(500).send(err.message);
+    }
+    if (!rootMessage) {
+      return res.status(404).send('Message not found');
+    }
+
+    const query = `
+      WITH RECURSIVE connected_messages AS (
+        SELECT * FROM messages WHERE id = ?
+        UNION
+        SELECT m.* FROM messages m
+        INNER JOIN connected_messages cm ON m.parent = cm.id
+      )
+      SELECT * FROM connected_messages ORDER BY id;
+    `;
+
+    db.all(query, [rootMessage.id], (err, rows) => {
+      if (err) {
+        return res.status(500).send(err.message);
+      }
+
+      const values = rows.map(row => [row.encryptedData]);
+      const leafEncoding = ['string']; 
+
+      console.log(values)
+
+      const merkleTree = buildMerkleTree(values, leafEncoding);
+      res.send(merkleTree);
+    });
+  });
 });
 
 
@@ -234,9 +318,9 @@ app.post('/entities', (req, res) => {
 
     const entityId = this.lastID;
     if (customers && customers.length > 0) {
-      const customerStmt = db.prepare('INSERT INTO customers (entityId, name, balance) VALUES (?, ?, ?)');
+      const customerStmt = db.prepare('INSERT INTO customers (entityId, name, iban, balance) VALUES (?, ?, ?, ?)');
       customers.forEach(customer => {
-        customerStmt.run(entityId, customer.name, customer.balance, err => {
+        customerStmt.run(entityId, customer.name, customer.iban, customer.balance, err => {
           if (err) {
             console.error('Error inserting customer:', err);
           }
@@ -254,7 +338,7 @@ app.post('/entities', (req, res) => {
 app.post('/customers', (req, res) => {
   const { entityId, name, balance } = req.body;
 
-  const stmt = db.prepare('INSERT INTO customers (entityId, name, balance) VALUES (?, ?, ?)');
+  const stmt = db.prepare('INSERT INTO customers (entityId, name, iban, balance) VALUES (?, ?, ?, ?)');
   stmt.run(entityId, name, balance, function (err) {
     if (err) {
       return res.status(500).send(err.message);
@@ -286,6 +370,49 @@ app.put('/customers/:id/balance', (req, res) => {
       return res.status(404).send('Customer not found');
     }
     res.status(200).send('Balance updated successfully');
+  });
+  stmt.finalize();
+});
+
+app.get('/transactions', (req, res) => {
+  db.all('SELECT * FROM transactions', [], (err, rows) => {
+    if (err) {
+      return res.status(500).send(err.message);
+    }
+    res.send(rows);
+  });
+});
+
+app.post('/transactions', (req, res) => {
+  const { messageId, sender, receiver, amount, status } = req.body;
+
+  const stmt = db.prepare('INSERT INTO transactions (messageId, sender, receiver, amount, status) VALUES (?, ?, ?, ?, ?)');
+  stmt.run(messageId, sender, receiver, amount, status, function (err) {
+    if (err) {
+      return res.status(500).send(err.message);
+    }
+    res.status(201).send({ transactionId: this.lastID });
+  });
+  stmt.finalize();
+});
+
+app.put('/transactions/:id/status', (req, res) => {
+  const transactionId = req.params.id;
+  const { newStatus } = req.body;
+
+  if (typeof newStatus !== 'string') {
+    return res.status(400).send('New status must be a string');
+  }
+
+  const stmt = db.prepare('UPDATE transactions SET status = ? WHERE id = ?');
+  stmt.run(newStatus, transactionId, function(err) {
+    if (err) {
+      return res.status(500).send('Failed to update status');
+    }
+    if (this.changes === 0) {
+      return res.status(404).send('Transaction not found');
+    }
+    res.status(200).send('Status updated successfully');
   });
   stmt.finalize();
 });
