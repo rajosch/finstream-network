@@ -16,7 +16,7 @@
 
 ### Blockchain
 
-* [ ] Spin up local node with Hardhat
+* [X] Spin up local node with Hardhat
 * [ ] Implement `Chainlink Price Feed`for Ethereum EUR/USD | USD/EUR
 * [ ] Make sure EURC and USDC mock coins are deployed to local node and function
 * [ ] Adjust treasury

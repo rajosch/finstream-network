@@ -3,6 +3,8 @@ const { getRandomBytes } = require('ethereum-cryptography/random');
 const { encrypt, decrypt } = require('ethereum-cryptography/aes');
 const { pbkdf2 } = require('ethereum-cryptography/pbkdf2');
 
+// ethers.JsonRpcProvider
+
 async function encryptFile(data, wallets, parent, ticketId) {
     const symmetricKey = await getRandomBytes(16);
     const iv = await getRandomBytes(16);

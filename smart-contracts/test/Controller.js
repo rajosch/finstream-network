@@ -4,7 +4,6 @@ const { expect } = require("chai");
 describe("Controller", function () {
     async function deployControllerFixture() {
         const [owner, manager, controller, user1, user2, otherAccount] = await ethers.getSigners();
-
         const MockCoin = await ethers.getContractFactory("MockCoin");
         const tokenA = await MockCoin.deploy("Token A", "TKNA");
         const tokenB = await MockCoin.deploy("Token B", "TKNB");
