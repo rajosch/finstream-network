@@ -24,6 +24,41 @@ describe("Treasury", function () {
     return { treasury, tokenA, tokenB, admin, manager, controller, user, otherAccount };
   }
 
+  describe("Chainlink Price Feed", function () {
+    it("should fetch the latest price from Chainlink price feed", async function () {
+      // Chainlink price feed contract address EUR/USD (Sepolia)
+      const priceFeedAddress = "0x1a81afB8146aeFfCFc5E50e8479e826E7D55b910";
+  
+      // Chainlink price feed contract ABI
+      const priceFeedAbi = [
+        {
+          "constant": true,
+          "inputs": [],
+          "name": "latestRoundData",
+          "outputs": [
+            { "name": "roundId", "type": "uint80" },
+            { "name": "answer", "type": "int256" },
+            { "name": "startedAt", "type": "uint256" },
+            { "name": "updatedAt", "type": "uint256" },
+            { "name": "answeredInRound", "type": "uint80" }
+          ],
+          "payable": false,
+          "stateMutability": "view",
+          "type": "function"
+        }
+      ];
+  
+      const priceFeed = new ethers.Contract(priceFeedAddress, priceFeedAbi, ethers.provider);
+  
+      // Query the latest price
+      const latestRoundData = await priceFeed.latestRoundData();
+      console.log("Latest round data:", latestRoundData);
+      console.log("Price:", ethers.formatUnits(latestRoundData.answer, 8));
+  
+      expect(latestRoundData).to.not.be.undefined;
+    }); 
+  });
+
   describe("Deployment", function () {
     it("Should set the correct admin role", async function () {
       const { treasury, admin } = await loadFixture(deployTreasuryFixture);

@@ -91,25 +91,59 @@
           <h1 class="text-2xl font-bold">
             Database
           </h1>
-          <div>
-            <select
-              id="component-select"
-              v-model="selectedTable"
-              class="bg-gray-700 text-white p-2 rounded"
-            >
-              <option value="messages">
-                Messages
-              </option>
-              <option value="customers">
-                Customers
-              </option>
-            </select>
+          <div class="flex gap-x-3">
+            <div>
+              <select
+                id="component-select"
+                v-model="selectedDb"
+                class="bg-gray-700 text-white p-2 rounded"
+              >
+                <option 
+                  value="gateway"
+                  @click="setDefaults('gateway')"
+                >
+                  Gateway
+                </option>
+                <option 
+                  value="banks"
+                  @click="setDefaults('banks')"
+                >
+                  Banks
+                </option>
+              </select>
+            </div>
+            <div id="component-select">
+              <select 
+                v-if="selectedDb.localeCompare('gateway')" 
+                v-model="selectedTable"
+                class="bg-gray-700 text-white p-2 rounded"
+              >
+                <option 
+                  v-for="table in bankOptions"
+                  :value="table"
+                >
+                  {{ table }}
+                </option>
+              </select>
+              <select 
+                v-else
+                v-model="selectedTable"
+                class="bg-gray-700 text-white p-2 rounded"
+              >
+                <option 
+                  v-for="table in gatewayOptions"
+                  :value="table"
+                >
+                  {{ table }}
+                </option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
       <div class="bg-gray-300 h-[60vh] grid place-items-center">
         <div class="w-full">
-          <DisplayData :table="selectedTable" />
+          <DisplayData :db="selectedDb" :table="selectedTable" />
         </div>
       </div>
     </section>
@@ -147,13 +181,31 @@
 </template>
 
 <script>
-
-export default {
-  data() {
-    return {
-      selectedComponent: 'Bank USA',
-      selectedTable: 'messages',
-    };
-  }
-};
+  export default {
+    data() {
+      return {
+        selectedComponent: 'Bank USA',
+        selectedTable: 'messages',
+        selectedDb: 'gateway',
+        bankOptions: [
+          'customers',
+          'transactions'
+        ],
+        gatewayOptions: [
+          'messages',
+          'entities',
+          'messageEntities'
+        ]
+      };
+    },
+    methods: {
+      setDefaults(db) {
+        if(db.localeCompare('gateway') === 0) {
+          this.selectedTable = 'messages';
+        }else {
+          this.selectedTable = 'customers';
+        }
+      }
+    }
+  };
 </script>

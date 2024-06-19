@@ -1,7 +1,7 @@
 <template>
   <div class="text-black cursor-default">
     <section
-      id="gateway-data"
+      id="data"
       class="h-[60vh]"
     >
       <div
@@ -57,6 +57,10 @@ export default {
     table: {
       type: String,
       required: true
+    },
+    db: {
+      type: String,
+      default: 'gateway'
     }
   },
   data() {
@@ -73,9 +77,14 @@ export default {
       }
     }
   },
+  computed: {
+    port() {
+      return this.db.localeCompare('gateway') === 0 ? 3000 : 3001;
+    }
+  },
   methods: {
     async fetchData() {
-      this.data = await getData(this.table);
+      this.data = await getData(this.table, this.port);
     },
     showDetails(value) {
       this.selectedValue = value;

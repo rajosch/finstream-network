@@ -17,7 +17,7 @@
 ### Blockchain
 
 * [X] Spin up local node with Hardhat
-* [ ] Implement `Chainlink Price Feed`for Ethereum EUR/USD | USD/EUR
+* [ ] Implement `Chainlink Price Feed`for Ethereum EUR/USD
 * [ ] Make sure EURC and USDC mock coins are deployed to local node and function
 * [ ] Adjust treasury
 
@@ -34,6 +34,7 @@
 * [X] Create Message route should return the ticket ID or an error message
 * [ ] handle merkle tree creation on server side
 * [X] Make sure the XSD content is handled on the server side
+* [X] split up gateway and bank databases for clearer structure
 
 ## Future Work
 
