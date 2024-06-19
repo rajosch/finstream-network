@@ -47,28 +47,32 @@
 </template>
 
 <script>
+import store from '~/store';
 export default {
-    data() {
-        return {
-            isTransparent: false,
-        };
+  async setup() {
+    await store.queryData();
+  },
+  data() {
+    return {
+      isTransparent: false,
+    };
+  },
+  mounted() {
+    window.addEventListener('scroll', this.handleScroll);
+  },
+  beforeUnmount() {
+    window.removeEventListener('scroll', this.handleScroll);
+  },
+  methods: {
+    handleScroll() {
+      this.isTransparent = window.scrollY > 50;
     },
-    mounted() {
-        window.addEventListener('scroll', this.handleScroll);
-    },
-    beforeUnmount() {
-        window.removeEventListener('scroll', this.handleScroll);
-    },
-    methods: {
-        handleScroll() {
-            this.isTransparent = window.scrollY > 50;
-        },
-    },
+  },
 };
 </script>
 
 <style>
-    html {
-        scroll-behavior: smooth;
-    }
+  html {
+    scroll-behavior: smooth;
+  }
 </style>

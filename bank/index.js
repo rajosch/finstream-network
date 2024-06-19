@@ -84,10 +84,6 @@ app.put('/customers/:id/balance', (req, res) => {
   const customerId = req.params.id;
   const { newBalance } = req.body;
 
-  if (typeof newBalance !== 'number') {
-    return res.status(400).send('New balance must be a number');
-  }
-
   const stmt = db.prepare('UPDATE customers SET balance = ? WHERE id = ?');
   stmt.run(newBalance, customerId, function(err) {
     if (err) {
@@ -111,14 +107,14 @@ app.get('/transactions', (req, res) => {
 });
 
 app.post('/transactions', (req, res) => {
-  const { messageId, sender, receiver, amount, status } = req.body;
+  const { messageId, senderId, receiverId, amountSent, amountReceived, currencySent, currencyReceived, status } = req.body;
 
-  const stmt = db.prepare('INSERT INTO transactions (messageId, sender, receiver, amount, status) VALUES (?, ?, ?, ?, ?)');
-  stmt.run(messageId, sender, receiver, amount, status, function (err) {
-      if (err) {
+  const stmt = db.prepare('INSERT INTO transactions (messageId, senderId, receiverId, amountSent, amountReceived, currencySent, currencyReceived, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+  stmt.run(messageId, senderId, receiverId, amountSent, amountReceived, currencySent, currencyReceived, status, function (err) {
+    if (err) {
       return res.status(500).send(err.message);
-      }
-      res.status(201).send({ transactionId: this.lastID });
+    }
+    res.status(201).send({ transactionId: this.lastID });
   });
   stmt.finalize();
 });
@@ -140,6 +136,23 @@ app.put('/transactions/:id/status', (req, res) => {
       return res.status(404).send('Transaction not found');
       }
       res.status(200).send('Status updated successfully');
+  });
+  stmt.finalize();
+});
+
+app.put('/transactions/:id/amountReceived', (req, res) => {
+  const transactionId = req.params.id;
+  const { amountReceived } = req.body;
+
+  const stmt = db.prepare('UPDATE transactions SET amountReceived = ? WHERE id = ?');
+  stmt.run(amountReceived, transactionId, function(err) {
+    if (err) {
+      return res.status(500).send('Failed to update amountReceived');
+    }
+    if (this.changes === 0) {
+      return res.status(404).send('Transaction not found');
+    }
+    res.status(200).send('Status updated successfully');
   });
   stmt.finalize();
 });

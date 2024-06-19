@@ -16,7 +16,10 @@ db.serialize(() => {
     messageId INTEGER,
     senderId INTEGER,
     receiverId INTEGER,
-    amount INTEGER,
+    amountSent INTEGER,
+    amountReceived INTEGER,
+    currencySent TEXT,
+    currencyReceived TEXT,
     status TEXT,
     FOREIGN KEY(senderId) REFERENCES customers(id),
     FOREIGN KEY(receiverId) REFERENCES customers(id)

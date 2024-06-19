@@ -2,26 +2,27 @@ import { reactive, toRefs } from "vue";
 import { getData } from "./composables/useApi";
 
 const state = reactive({
-  EUBank: null,
-  USABank: null,
-  EUCustomers: [],
-  USACustomers: [],
-  selectedCurrency: '$',
+  messages: null,
+  entities: null,
+  messageEntities: null,
+  customers: null,
+  transactions: null
 });
 
 async function queryData() {
-  const banks = await getData('entities');
-  const customers = await getData('customers')
-  state.EUBank = banks.find(obj => obj.name === 'EU Bank');
-  state.USABank = banks.find(obj => obj.name === 'USA Bank');
-  state.EUCustomers.push(customers.find(obj => obj.name === 'Bob'));
-  state.EUCustomers.push(customers.find(obj => obj.name === 'Diana'));
-  state.USACustomers.push(customers.find(obj => obj.name === 'Alice'));
-  state.USACustomers.push(customers.find(obj => obj.name === 'Charlie'));
+  state.entities = await getData('entities', 3000);
+  state.messages = await getData('messages', 3000);
+  state.messageEntities = await getData('messageEntities', 3000);
+  state.customers = await getData('customers', 3001);
+  state.transactions = await getData('transactions', 3001);
 }
 
+function getTable(table) {
+  return state[table];
+}
 
 export default {
   ...toRefs(state),
-  queryData
+  queryData,
+  getTable
 };

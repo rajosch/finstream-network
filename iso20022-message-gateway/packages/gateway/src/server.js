@@ -308,3 +308,23 @@ app.post('/entities', (req, res) => {
   stmt.finalize();
 });
 
+app.get('/messageEntities', (req, res) => {
+  db.all('SELECT * FROM messageEntities', [], (err, rows) => {
+    if (err) {
+      return res.status(500).send(err.message);
+    }
+    res.send(rows);
+  });
+});
+
+app.post('/messageEntities', (req, res) => {
+  const { messageId, entityId } = req.body;
+  const sql = 'INSERT INTO messageEntities (messageId, entityId) VALUES (?, ?)';
+  
+  db.run(sql, [messageId, entityId], function(err) {
+    if (err) {
+      return res.status(500).send(err.message);
+    }
+    res.send({ id: this.lastID });
+  });
+});

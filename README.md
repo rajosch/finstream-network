@@ -7,11 +7,11 @@
 * [X] Plan out transaction steps
 * [ ] Set up the encryption to be bank/gateway bank/bank/gateway where appropriate
 * [ ] Setup up transaction
-  * [ ] Realize transfer without blockchain first
+  * [X] Realize transfer without blockchain first
   * [ ] Add blockchain calls to transaction
-* [ ] Set up state management & make database info global
-* [ ] Add fuctions to update database info
-* [ ] Add `sent and recieved transactions (including status)` for customer interface
+* [X] Set up state management & make database info global
+* [X] Add functions to update database info
+* [X] Add `sent and recieved transactions (including status)` for customer interface
 * [ ] Make `explanation video` and add it to the `About` section
 
 ### Blockchain

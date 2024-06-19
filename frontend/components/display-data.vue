@@ -52,40 +52,27 @@
 </template>
 
 <script>
+import store
+ from '~/store';
 export default {
   props: {
     table: {
       type: String,
       required: true
-    },
-    db: {
-      type: String,
-      default: 'gateway'
     }
   },
   data() {
     return {
-      data: null,
+      ...store,
       isModalOpen: false
     };
   },
-  watch: {
-    table: {
-      immediate: true,
-      handler() {
-        this.fetchData();
-      }
-    }
-  },
   computed: {
-    port() {
-      return this.db.localeCompare('gateway') === 0 ? 3000 : 3001;
+    data() {
+      return this.getTable(this.table);
     }
   },
   methods: {
-    async fetchData() {
-      this.data = await getData(this.table, this.port);
-    },
     showDetails(value) {
       this.selectedValue = value;
       this.isModalOpen = true;

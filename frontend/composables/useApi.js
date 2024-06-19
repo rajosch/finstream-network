@@ -56,3 +56,36 @@ export const createMessage = async (messageType, wallets, messageArgs, ticketId,
     throw error;
   }
 };
+
+export const createTransaction = async (transactionData, port = 3000) => {
+  try {
+    const apiClient = createApiClient(port);
+    const response = await apiClient.post('/transactions', transactionData);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating transaction:', error);
+    throw error;
+  }
+};
+
+export const updateTransactionStatus = async (transactionId, newStatus, port = 3000) => {
+  try {
+    const apiClient = createApiClient(port);
+    const response = await apiClient.put(`/transactions/${transactionId}/status`, { newStatus });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating transaction status:', error);
+    throw error;
+  }
+};
+
+export const updateTransactionAmountReceived = async (transactionId, amountReceived, port = 3000) => {
+  try {
+    const apiClient = createApiClient(port);
+    const response = await apiClient.put(`/transactions/${transactionId}/amountReceived`, { amountReceived });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating transaction status:', error);
+    throw error;
+  }
+};

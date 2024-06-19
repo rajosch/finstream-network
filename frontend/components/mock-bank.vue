@@ -49,12 +49,12 @@
         </button>
       </div>
       <div class="grid grid-cols-5 gap-x-8">
-        <div class="col-span-2">
+        <div class="col-span-3">
           <h3 class="text-lg font-semibold mb-2 text-gray-700">
             Account Balance
           </h3>
           <p class="text-lg text-gray-500">
-            {{ currencySymbol }}{{ customer.balance }}
+            {{ customer.currency }}{{ customer.balance.toFixed(2) }}
           </p>
           <h3 class="text-lg font-semibold mt-6 mb-2 text-gray-700">
             Transfer Money
@@ -91,19 +91,112 @@
           </select>
           <button
             class="w-full bg-green-500 text-white p-2 rounded"
-            @click="startTransaction"
+            @click="transfer"
           >
             Transfer
           </button>
         </div>
-        <div class="col-span-3 flex flex-col gap-y-1 h-84 overflow-auto">
+        <div class="col-span-2 flex flex-col gap-y-1">
           <h3 class="text-lg font-semibold mb-2 text-gray-700">
             Transfers
           </h3>
-          TODO PAST TRANSFERS
+          <div class="h-64 overflow-auto text-gray-600 grid">
+            <div v-for="(transaction, index) in selectedCustomerTransactions" :key="transaction.id">
+              <div  v-if="customer.id === transaction.senderId"  :class="['p-1 cursor-pointer opacity-75 hover:opacity-100', index % 2 === 0 ? 'bg-gray-100' : 'bg-gray-200']" @click="showDetails(transaction)">
+                <div class="flex justify-between items-center">
+                  <img
+                    src="/img/icons/money_sent.png"
+                    class="h-6 w-6 rotate-180"
+                  > 
+                  <div>
+                    {{ transaction.currencySent }}{{ transaction.amountSent.toFixed(2) }}
+                  </div>
+                  <img
+                    v-if="transaction.status === 'completed'"
+                    src="/img/icons/completed.png"
+                    class="h-6 w-6"
+                  > 
+                  <img
+                    v-else-if="transaction.status === 'failed'"
+                    src="/img/icons/failed.png"
+                    class="h-6 w-6"
+                  > 
+                  <img
+                    v-else
+                    src="/img/icons/pending.png"
+                    class="h-2 w-5"
+                  > 
+                </div>
+              </div>
+              <div v-else-if="customer.id === transaction.receiverId" :class="['p-1 cursor-pointer opacity-75 hover:opacity-100', index % 2 === 0 ? 'bg-gray-100' : 'bg-gray-200']" @click="showDetails(transaction)">
+                <div  class="flex justify-between items-center">
+                  <img
+                    src="/img/icons/money_received.png"
+                    class="h-6 w-6"
+                  > 
+                  <div>
+                    {{ transaction.currencyReceived }}{{ transaction.amountReceived.toFixed(2) }}
+                  </div>
+                  <img
+                    v-if="transaction.status === 'completed'"
+                    src="/img/icons/completed.png"
+                    class="h-6 w-6"
+                  > 
+                  <img
+                    v-else-if="transaction.status === 'failed'"
+                    src="/img/icons/failed.png"
+                    class="h-6 w-6"
+                  > 
+                  <img
+                    v-else
+                    src="/img/icons/pending.png"
+                    class="h-2 w-5"
+                  > 
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
+    
+    <ModalView
+      v-if="isModalOpen"
+      @close="isModalOpen = false"
+      class="text-gray-700"
+    >
+      <div class="p-4">
+        <h2 class="text-lg font-semibold mb-4">Transaction Details</h2>
+        <table class="min-w-full bg-white border border-gray-200">
+          <tbody>
+            <tr>
+              <td class="border px-4 py-2 font-semibold">Transaction ID</td>
+              <td class="border px-4 py-2">{{ selectedTransaction.id }}</td>
+            </tr>
+            <tr>
+              <td class="border px-4 py-2 font-semibold">Sender</td>
+              <td class="border px-4 py-2">{{ getIban(selectedTransaction.senderId) }} <span class="text-sm">({{ getName(selectedTransaction.senderId) }})</span></td>
+            </tr>
+            <tr>
+              <td class="border px-4 py-2 font-semibold">Receiver</td>
+              <td class="border px-4 py-2">{{ getIban(selectedTransaction.receiverId) }} <span class="text-sm">({{ getName(selectedTransaction.receiverId) }})</span></td>
+            </tr>
+            <tr>
+              <td class="border px-4 py-2 font-semibold">Amount Sent</td>
+              <td class="border px-4 py-2">{{ selectedTransaction.currencySent }}{{ selectedTransaction.amountSent }}</td>
+            </tr>
+            <tr>
+              <td class="border px-4 py-2 font-semibold">Amount Received</td>
+              <td class="border px-4 py-2">{{ selectedTransaction.currencyReceived }}{{ selectedTransaction.amountReceived }}</td>
+            </tr>
+            <tr>
+              <td class="border px-4 py-2 font-semibold">Status</td>
+              <td class="border px-4 py-2">{{ selectedTransaction.status }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </ModalView>
   </div>
 </template>
 
@@ -118,24 +211,20 @@ export default {
       required: true
     }
   },
-  async setup() {
-    const EUBank = store.EUBank;
-    const USABank = store.USABank;
-    const EUCustomers = store.EUCustomers;
-    const USACustomers = store.USACustomers;
-    return { EUBank, USABank, EUCustomers, USACustomers };
-  },
   data() {
     return {
+      ...store,
       loggedIn: false,
       selectedCustomer: '',
       transferAmount: '',
-      transferRecipient: ''
+      transferRecipient: '',
+      selectedTransaction: null,
+      isModalOpen: false
     };
   },
   computed: {
     bank() {
-      return this.banks.find(obj => obj.name === this.selectedBank);
+      return this.entities.find(obj => obj.name === this.selectedBank);
     },
     customer() {
       return this.customers.find(obj => obj.name === this.selectedCustomer)
@@ -148,9 +237,24 @@ export default {
     },
     otherCurrenncy() {
       return this.bank.currency.toString().localeCompare('$') === 0 ? '€' : '$';
-    }
+    },
+    selectedCustomerTransactions() {
+      return this.transactions.filter(transaction => 
+        transaction.senderId === this.customer.id || transaction.receiverId === this.customer.id
+      ).reverse();
+    },
   },
   methods: {
+    showDetails(transaction) {
+      this.selectedTransaction = transaction;
+      this.isModalOpen = true;
+    },
+    getIban(id) {
+      return this.customers.find(obj => obj.id === id).iban;
+    },
+    getName(id) {
+      return this.customers.find(obj => obj.id === id).name;
+    },
     logIn() {
       this.loggedIn = true;
     },
@@ -159,6 +263,107 @@ export default {
       this.transferAmount = '';
       this.transferRecipient = '';
       this.loggedIn = false;
+    },
+    async transfer() {
+      // Check that a receiver is selected and the debtor has a high enough account balance
+      if(this.transferAmount <= 0 || this.transferAmount >= this.customer.balance || this.transferRecipient.length === 0) {
+        alert('Transaction could not be executed because the amount or the recipient was not valid.');
+      }
+
+      // Get Bank customers
+      const debtor = this.customer;
+      const creditor = this.customers.find(obj => obj.name === this.transferRecipient);
+
+      const messageId = 21;
+
+      const transactionData = { 
+        messageId: messageId,
+        senderId: debtor.id, 
+        receiverId: creditor.id, 
+        amountSent: this.transferAmount, 
+        amountReceived: 0, 
+        currencySent: debtor.currency, 
+        currencyReceived: creditor.currency, 
+        status: 'started' 
+      };
+
+      // Save transaction on the bank data base
+      const transaction = await createTransaction(transactionData, 3001);
+      const transactionId = transaction.transactionId;
+
+      // Update the account balance of the debtor
+      const newDebtorBalance = debtor.balance - this.transferAmount;
+      await updateCustomerBalance(debtor.id, newDebtorBalance, 3001);
+
+      // Update tables
+      await this.queryData();
+
+      await this.sleep(2000);
+
+      /**
+       * - Mint transaction ticket
+       * - Create transaction message
+       * - setup merkle root
+       * - update merkle root on chain
+       */
+
+      // Update transaction status to frowareded
+      await updateTransactionStatus(transactionId, 'forwarded', 3001);
+
+      // Update tables
+      await this.queryData();
+
+      await this.sleep(2000);
+
+      const rateNumber = 1.07; // TODO await getExchangeRate(...)
+      const exchangeRate = debtor.currency === '$' ? (1 / rateNumber) : rateNumber; 
+
+      /**
+       * - Create transaction message
+       * - update merkle root
+       */
+      
+      const amountReceived = this.transferAmount * exchangeRate;
+
+      await updateTransactionAmountReceived(transactionId, amountReceived, 3001);
+      await updateTransactionStatus(transactionId, 'exchange rate set', 3001);
+
+      // Update tables
+      await this.queryData();
+
+      await this.sleep(2000);
+
+      /**
+       * - Create thrid message
+       * - update merkle root
+       */
+
+       await updateTransactionStatus(transactionId, 'transfering funds', 3001);
+
+
+      // Update tables
+      await this.queryData();
+
+      /**
+       * - transfer funds on chain
+       * - Create fourth message
+       * - update merkle root
+       * - Create fith message
+       * - update merkle root
+       */
+
+       await this.sleep(2000);
+
+      const newCreditorBalance = creditor.balance + amountReceived;
+      await updateCustomerBalance(creditor.id, newCreditorBalance, 3001);
+
+      await updateTransactionStatus(transactionId, 'completed', 3001);
+
+      // Reset values
+      this.transferAmount = '';
+      this.transferRecipient = '';
+
+      await this.queryData();
     },
     async startTransaction() {
       if(this.transferAmount <= 0 || this.transferAmount >= this.customer.balance || this.transferRecipient.length === 0) {
