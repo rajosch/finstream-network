@@ -57,44 +57,53 @@
             <div
               v-for="(messages, index) in transactions"
               :key="index"
-              class="mb-4"
+              :class="['py-2 px-2 cursor-pointer', index % 2 === 0 ? 'bg-gray-100' : 'bg-gray-200']"
+              @click="toggleTicket(index)"
             >
-              <button
-                class="text-gray-700 text-lg flex gap-x-1 items-center"
-                @click="toggleTicket(index)"
-              >
-                <svg
+              <div class="flex justify-between mb-1">
+                <div
+                  class="text-gray-700 text-lg flex gap-x-1 items-center"
+                >
+                  <svg
+                    v-if="expandedTickets.includes(index)"
+                    class="w-4 h-4 ml-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                  <svg
+                    v-else
+                    class="w-4 h-4 ml-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                  Ticket: <span class="font-semibold">{{ messages[0].ticketId }}</span>
+                </div>
+                <button 
                   v-if="expandedTickets.includes(index)"
-                  class="w-4 h-4 ml-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
+                  class="text-lg border border-green-300 p-1 text-green-400 rounded-md bg-white bg-opacity-25 hover:bg-opacity-100 hover:text-green-500" 
+                  @click.stop="verifyMessages(messages)"
                 >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-                <svg
-                  v-else
-                  class="w-4 h-4 ml-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
-                Ticket: <span class="font-semibold">{{ messages[0].ticketId }}</span>
-              </button>
+                  Verify
+                </button>
+              </div>
               <div v-if="expandedTickets.includes(index)">
                 <div
                   v-if="messages && messages.length"
@@ -122,9 +131,17 @@
                           :key="key"
                           class="py-2 px-4 border-b border-gray-200 text-center max-w-xs truncate hover:bg-gray-200 cursor-pointer"
                           :title="value"
-                          @click="showDetails(value)"
+                          @click.stop="showDetails(value)"
                         >
-                          {{ value }}
+                          <span v-if="value === 'checking validity'" class="flex items-center justify-center">
+                            <svg class="animate-spin h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                          </span>
+                          <span v-else-if="value === 'verified'" class="text-green-500">Verified</span>
+                          <span v-else-if="value === 'corrupted'" class="text-red-500">Corrupted</span>
+                          <span v-else>{{ value }}</span>
                         </td>
                       </tr>
                     </tbody>
@@ -141,7 +158,9 @@
       class="text-gray-600"
       @close="isModalOpen = false"
     >
-      <p>{{ selectedValue }}</p>
+      <p>
+        {{ selectedValue }}
+      </p>
     </ModalView>
   </div>
 </template>
@@ -161,7 +180,7 @@ export default {
       ],
       transactions: null,
       expandedTickets: [],
-      isModalOpen: false
+      isModalOpen: false,
     };
   },
   computed: {
@@ -195,6 +214,30 @@ export default {
     showDetails(value) {
       this.selectedValue = value;
       this.isModalOpen = true;
+    },
+    async verifyMessages(messages) {
+      const newStates = [];
+      for(let i = 0; i < messages.length; i++) {
+        console.log("Verifyfing message: ", messages[i].id);
+        messages[i].verified = 'checking validity';
+
+        // TODO check validity of the message hash agains the root hash on-chain
+
+        await this.sleep(2000);
+        const newState = 'verified';
+        messages[i].verified = newState;
+        newStates.push(newState);
+      }      
+
+      for(let i = 0; i < messages.length; i++) {
+        await updateMessageVerificationState(messages[i].id, newStates[i], 3000);
+      } 
+      
+      await this.queryData();
+      this.transactions = await getMessagesByEntityName(this.selectedBank);
+    },
+    sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
     }
   }
 };

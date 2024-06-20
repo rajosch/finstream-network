@@ -111,3 +111,14 @@ export const getMessagesByEntityName = async (entityName, port = 3000) => {
     throw error;
   }
 };
+
+export const updateMessageVerificationState = async (messageId, newState, port = 3000) => {
+  try {
+    const apiClient = createApiClient(port);
+    const response = await apiClient.put(`/messages/${messageId}/verified`, { newState });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating transaction status:', error);
+    throw error;
+  }
+};

@@ -19,22 +19,22 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 const insertMessagesSequentially = async () => {
   const messages = [
-    { encryptedData: 'data1', iv: 'iv1', messageHash: 'hash1', ticketId: 'ticket1', parent: null },
-    { encryptedData: 'data2', iv: 'iv2', messageHash: 'hash2', ticketId: 'ticket2', parent: null },
-    { encryptedData: 'data3', iv: 'iv3', messageHash: 'hash3', ticketId: 'ticket3', parent: null },
-    { encryptedData: 'data4', iv: 'iv4', messageHash: 'hash4', ticketId: 'ticket1', parent: 1 },
-    { encryptedData: 'data5', iv: 'iv5', messageHash: 'hash5', ticketId: 'ticket1', parent: 4 },
-    { encryptedData: 'data6', iv: 'iv6', messageHash: 'hash6', ticketId: 'ticket1', parent: 5 },
-    { encryptedData: 'data7', iv: 'iv7', messageHash: 'hash7', ticketId: 'ticket2', parent: 2 },
-    { encryptedData: 'data8', iv: 'iv8', messageHash: 'hash8', ticketId: 'ticket2', parent: 7 },
-    { encryptedData: 'data9', iv: 'iv9', messageHash: 'hash9', ticketId: 'ticket3', parent: 3 },
-    { encryptedData: 'data10', iv: 'iv10', messageHash: 'hash10', ticketId: 'ticket3', parent: 9 }
+    { encryptedData: 'data1', iv: 'iv1', messageHash: 'hash1', ticketId: 'ticket1', parent: null, verified: 'unverified' },
+    { encryptedData: 'data2', iv: 'iv2', messageHash: 'hash2', ticketId: 'ticket2', parent: null, verified: 'unverified' },
+    { encryptedData: 'data3', iv: 'iv3', messageHash: 'hash3', ticketId: 'ticket3', parent: null, verified: 'unverified' },
+    { encryptedData: 'data4', iv: 'iv4', messageHash: 'hash4', ticketId: 'ticket1', parent: 1, verified: 'unverified' },
+    { encryptedData: 'data5', iv: 'iv5', messageHash: 'hash5', ticketId: 'ticket1', parent: 4, verified: 'unverified' },
+    { encryptedData: 'data6', iv: 'iv6', messageHash: 'hash6', ticketId: 'ticket1', parent: 5, verified: 'unverified' },
+    { encryptedData: 'data7', iv: 'iv7', messageHash: 'hash7', ticketId: 'ticket2', parent: 2, verified: 'unverified' },
+    { encryptedData: 'data8', iv: 'iv8', messageHash: 'hash8', ticketId: 'ticket2', parent: 7, verified: 'unverified' },
+    { encryptedData: 'data9', iv: 'iv9', messageHash: 'hash9', ticketId: 'ticket3', parent: 3, verified: 'unverified' },
+    { encryptedData: 'data10', iv: 'iv10', messageHash: 'hash10', ticketId: 'ticket3', parent: 9, verified: 'unverified' }
   ];
 
   for (const message of messages) {
     await new Promise((resolve, reject) => {
-      const stmt = db.prepare('INSERT INTO messages (encryptedData, iv, messageHash, ticketId, parent) VALUES (?, ?, ?, ?, ?)');
-      stmt.run(message.encryptedData, message.iv, message.messageHash, message.ticketId, message.parent, function (err) {
+      const stmt = db.prepare('INSERT INTO messages (encryptedData, iv, messageHash, ticketId, parent, verified) VALUES (?, ?, ?, ?, ?, ?)');
+      stmt.run(message.encryptedData, message.iv, message.messageHash, message.ticketId, message.parent, message.verified, function (err) {
         if (err) {
           console.error('Error inserting message:', err);
           reject(err);
@@ -148,10 +148,10 @@ app.get('/tables', (req, res) => {
 });
 
 app.post('/messages', (req, res) => {
-  const { encryptedData, symmetricKey, iv, messageHash, ticketId, parent, entityIds } = req.body;
+  const { encryptedData, symmetricKey, iv, messageHash, ticketId, parent, entityIds, verified } = req.body;
 
-  const stmt = db.prepare('INSERT INTO messages (encryptedData, iv, messageHash, ticketId, parent) VALUES (?, ?, ?, ?, ?)');
-  stmt.run(JSON.stringify(encryptedData), JSON.stringify(iv), messageHash, ticketId, parent, function (err) {
+  const stmt = db.prepare('INSERT INTO messages (encryptedData, iv, messageHash, ticketId, parent, verified) VALUES (?, ?, ?, ?, ?, ?)');
+  stmt.run(JSON.stringify(encryptedData), JSON.stringify(iv), messageHash, ticketId, parent, verified, function (err) {
     if (err) {
       return res.status(500).send(err.message);
     }
@@ -200,9 +200,11 @@ app.post('/create-message', async (req, res) => {
 
     const encryptedMessage = await createMessage(messageType, wallets, messageArgs, ticketId, xsdContent, root, parent);
 
+    // TODO verify message here
+
     if (encryptedMessage) {
-      const messageStmt = db.prepare('INSERT INTO messages (encryptedData, iv, messageHash, ticketId, parent) VALUES (?, ?, ?, ?, ?)');
-      messageStmt.run(encryptedMessage.encryptedData, encryptedMessage.iv, encryptedMessage.messageHash, ticketId, encryptedMessage.parent, function (err) {
+      const messageStmt = db.prepare('INSERT INTO messages (encryptedData, iv, messageHash, ticketId, parent, verified) VALUES (?, ?, ?, ?, ?, ?)');
+      messageStmt.run(encryptedMessage.encryptedData, encryptedMessage.iv, encryptedMessage.messageHash, ticketId, encryptedMessage.parent, true, function (err) {
         if (err) {
           return res.status(500).send('Failed to insert message');
         }
@@ -281,6 +283,27 @@ app.get('/messages/:ticketId', (req, res) => {
   });
 });
 
+app.put('/messages/:id/verified', (req, res) => {
+  const messageId = req.params.id;
+  const { newState } = req.body;
+
+  if (typeof newState !== 'string') {
+      return res.status(400).send('New state must be a string');
+  }
+
+  const stmt = db.prepare('UPDATE messages SET verified = ? WHERE id = ?');
+  stmt.run(newState, messageId, function(err) {
+      if (err) {
+      return res.status(500).send('Failed to update state');
+      }
+      if (this.changes === 0) {
+      return res.status(404).send('Message not found');
+      }
+      res.status(200).send('State updated successfully');
+  });
+  stmt.finalize();
+});
+
 // TODO fix this
 app.get('/messages/:ticketId/create-merkle-tree', (req, res) => {
   const ticketId = req.params.ticketId;
@@ -320,6 +343,8 @@ app.get('/messages/:ticketId/create-merkle-tree', (req, res) => {
     });
   });
 });
+
+// TODO do node node validity check
 
 app.get('/entities', (req, res) => {
   db.all('SELECT * FROM entities', [], (err, rows) => {

@@ -12,7 +12,8 @@
 * [X] Set up state management & make database info global
 * [X] Add functions to update database info
 * [X] Add `sent and recieved transactions (including status)` for customer interface
-* [ ] Enable message validation on the finstream panel
+* [ ] fix selectedTransaction bug in the mock-bank component
+* [ ] Check against on-chain root to verify messages on the finstream-panel
 * [ ] Put explanations in the about section (from readme info TBD)
 * [ ] Make `explanation video` and add it to the `About` section
 

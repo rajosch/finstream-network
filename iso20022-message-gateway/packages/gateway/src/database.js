@@ -16,7 +16,8 @@ db.serialize(() => {
         iv TEXT,
         messageHash TEXT,
         ticketId TEXT,
-        parent TEXT
+        parent TEXT,
+        verified TEXT
     )`);
 
     db.run(`CREATE TABLE IF NOT EXISTS symmetricKeys (
