@@ -89,3 +89,25 @@ export const updateTransactionAmountReceived = async (transactionId, amountRecei
     throw error;
   }
 };
+
+export const getMessagesByTicketId = async (ticketId, port = 3000) => {
+  try {
+    const apiClient = createApiClient(port);
+    const response = await apiClient.get(`/messages/${ticketId}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching messages for ticketId ${ticketId}:`, error);
+    throw error;
+  }
+};
+
+export const getMessagesByEntityName = async (entityName, port = 3000) => {
+  try {
+    const apiClient = createApiClient(port);
+    const response = await apiClient.get(`/messages/entity/${entityName}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching messages for entity ${entityName}:`, error);
+    throw error;
+  }
+};

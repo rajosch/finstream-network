@@ -12,6 +12,8 @@
 * [X] Set up state management & make database info global
 * [X] Add functions to update database info
 * [X] Add `sent and recieved transactions (including status)` for customer interface
+* [ ] Enable message validation on the finstream panel
+* [ ] Put explanations in the about section (from readme info TBD)
 * [ ] Make `explanation video` and add it to the `About` section
 
 ### Blockchain
@@ -30,9 +32,10 @@
 
 * [X] Add IBAN to customer table
 * [X] Add extra table with `sender`, `receiver` and `status`
-* [ ] Add logic to query messages connected to messageId (one transaction)
+* [X] Add logic to query messages connected to messageId (one transaction)
 * [X] Create Message route should return the ticket ID or an error message
 * [ ] handle merkle tree creation on server side
+* [ ] handle merkle tree validation on server side
 * [X] Make sure the XSD content is handled on the server side
 * [X] split up gateway and bank databases for clearer structure
 

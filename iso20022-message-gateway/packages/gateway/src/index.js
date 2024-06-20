@@ -26,6 +26,36 @@ async function createMessage(messageType, wallets, messageArgs, ticketId, xsdCon
   return null;
 }
 
+function orderMessages(messages) {
+  // Ensure there is exactly one root message (parent is null)
+  const rootMessages = messages.filter(message => message.parent === null);
+  if (rootMessages.length !== 1) {
+    throw new Error('There should be exactly one root message');
+  }
+
+  // Create a map to easily find messages by their id
+  const messageMap = {};
+  messages.forEach(message => {
+    messageMap[message.id] = message;
+  });
+
+  // Initialize the ordered messages with the root message
+  const orderedMessages = [];
+  const queue = [rootMessages[0]];
+
+  // Use a queue to perform a breadth-first search
+  while (queue.length > 0) {
+    const currentMessage = queue.shift();
+    orderedMessages.push(currentMessage);
+
+    // Find all children of the current message, ensuring the comparison is done properly
+    const children = messages.filter(message => Number(message.parent) === currentMessage.id);
+    queue.push(...children);
+  }
+
+  return orderedMessages;
+}
+
 function createPain00100112({
   msgId,
   creDtTm,
@@ -195,5 +225,6 @@ function createPacs00200114({
 }
 
 module.exports = {
-  createMessage
+  createMessage,
+  orderMessages
 };

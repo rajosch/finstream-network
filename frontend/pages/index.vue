@@ -143,7 +143,10 @@
       </div>
       <div class="bg-gray-300 h-[60vh] grid place-items-center">
         <div class="w-full">
-          <DisplayData :db="selectedDb" :table="selectedTable" />
+          <DisplayData
+            :db="selectedDb"
+            :table="selectedTable"
+          />
         </div>
       </div>
     </section>

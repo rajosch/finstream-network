@@ -1,4 +1,4 @@
-const { createMessage } = require('../src');
+const { createMessage, orderMessages } = require('../src');
 const { encryptFile } = require('../../multi-party-encrypter');
 const { validateXML, xmlToBin } = require('../../xml-processor');
 const protobuf = require('protobufjs');
@@ -105,3 +105,39 @@ describe('createMessage', () => {
     expect(result).toBeNull();
   });
 });
+
+describe('orderMessages', () => {
+  it('should order messages starting with parent=null and so on', () => {
+    const messages = [
+      { id: 5, encryptedData: 'data5', iv: 'iv5', messageHash: 'hash5', ticketId: 'ticket1', parent: 4 },
+      { id: 1, encryptedData: 'data1', iv: 'iv1', messageHash: 'hash1', ticketId: 'ticket1', parent: null },
+      { id: 6, encryptedData: 'data6', iv: 'iv6', messageHash: 'hash6', ticketId: 'ticket1', parent: 5 },
+      { id: 4, encryptedData: 'data4', iv: 'iv4', messageHash: 'hash4', ticketId: 'ticket1', parent: 1 },
+    ];
+
+    const expectedOrderedMessages = [
+      { id: 1, encryptedData: 'data1', iv: 'iv1', messageHash: 'hash1', ticketId: 'ticket1', parent: null },
+      { id: 4, encryptedData: 'data4', iv: 'iv4', messageHash: 'hash4', ticketId: 'ticket1', parent: 1 },
+      { id: 5, encryptedData: 'data5', iv: 'iv5', messageHash: 'hash5', ticketId: 'ticket1', parent: 4 },
+      { id: 6, encryptedData: 'data6', iv: 'iv6', messageHash: 'hash6', ticketId: 'ticket1', parent: 5 }
+    ];
+
+    const result = orderMessages(messages);
+    expect(result).toEqual(expectedOrderedMessages);
+  });
+
+  it('should throw an error if there is not exactly one root message', () => {
+    const messagesWithNoRoot = [
+      { id: 2, encryptedData: 'data2', iv: 'iv2', messageHash: 'hash2', ticketId: 'ticket1', parent: 1 }
+    ];
+
+    const messagesWithMultipleRoots = [
+      { id: 1, encryptedData: 'data1', iv: 'iv1', messageHash: 'hash1', ticketId: 'ticket1', parent: null },
+      { id: 2, encryptedData: 'data2', iv: 'iv2', messageHash: 'hash2', ticketId: 'ticket1', parent: null }
+    ];
+
+    expect(() => orderMessages(messagesWithNoRoot)).toThrow('There should be exactly one root message');
+    expect(() => orderMessages(messagesWithMultipleRoots)).toThrow('There should be exactly one root message');
+  });
+});
+

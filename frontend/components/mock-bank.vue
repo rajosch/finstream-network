@@ -101,8 +101,15 @@
             Transfers
           </h3>
           <div class="h-64 overflow-auto text-gray-600 grid">
-            <div v-for="(transaction, index) in selectedCustomerTransactions" :key="transaction.id">
-              <div  v-if="customer.id === transaction.senderId"  :class="['p-1 cursor-pointer opacity-75 hover:opacity-100', index % 2 === 0 ? 'bg-gray-100' : 'bg-gray-200']" @click="showDetails(transaction)">
+            <div
+              v-for="(transaction, index) in selectedCustomerTransactions"
+              :key="transaction.id"
+            >
+              <div
+                v-if="customer.id === transaction.senderId"
+                :class="['p-1 cursor-pointer opacity-75 hover:opacity-100', index % 2 === 0 ? 'bg-gray-100' : 'bg-gray-200']"
+                @click="showDetails(transaction)"
+              >
                 <div class="flex justify-between items-center">
                   <img
                     src="/img/icons/money_sent.png"
@@ -128,8 +135,12 @@
                   > 
                 </div>
               </div>
-              <div v-else-if="customer.id === transaction.receiverId" :class="['p-1 cursor-pointer opacity-75 hover:opacity-100', index % 2 === 0 ? 'bg-gray-100' : 'bg-gray-200']" @click="showDetails(transaction)">
-                <div  class="flex justify-between items-center">
+              <div
+                v-else-if="customer.id === transaction.receiverId"
+                :class="['p-1 cursor-pointer opacity-75 hover:opacity-100', index % 2 === 0 ? 'bg-gray-100' : 'bg-gray-200']"
+                @click="showDetails(transaction)"
+              >
+                <div class="flex justify-between items-center">
                   <img
                     src="/img/icons/money_received.png"
                     class="h-6 w-6"
@@ -162,36 +173,62 @@
     
     <ModalView
       v-if="isModalOpen"
-      @close="isModalOpen = false"
       class="text-gray-700"
+      @close="isModalOpen = false"
     >
       <div class="p-4">
-        <h2 class="text-lg font-semibold mb-4">Transaction Details</h2>
+        <h2 class="text-lg font-semibold mb-4">
+          Transaction Details
+        </h2>
         <table class="min-w-full bg-white border border-gray-200">
           <tbody>
             <tr>
-              <td class="border px-4 py-2 font-semibold">Transaction ID</td>
-              <td class="border px-4 py-2">{{ selectedTransaction.id }}</td>
+              <td class="border px-4 py-2 font-semibold">
+                Transaction ID
+              </td>
+              <td class="border px-4 py-2">
+                {{ selectedTransaction.id }}
+              </td>
             </tr>
             <tr>
-              <td class="border px-4 py-2 font-semibold">Sender</td>
-              <td class="border px-4 py-2">{{ getIban(selectedTransaction.senderId) }} <span class="text-sm">({{ getName(selectedTransaction.senderId) }})</span></td>
+              <td class="border px-4 py-2 font-semibold">
+                Sender
+              </td>
+              <td class="border px-4 py-2">
+                {{ getIban(selectedTransaction.senderId) }} <span class="text-sm">({{ getName(selectedTransaction.senderId) }})</span>
+              </td>
             </tr>
             <tr>
-              <td class="border px-4 py-2 font-semibold">Receiver</td>
-              <td class="border px-4 py-2">{{ getIban(selectedTransaction.receiverId) }} <span class="text-sm">({{ getName(selectedTransaction.receiverId) }})</span></td>
+              <td class="border px-4 py-2 font-semibold">
+                Receiver
+              </td>
+              <td class="border px-4 py-2">
+                {{ getIban(selectedTransaction.receiverId) }} <span class="text-sm">({{ getName(selectedTransaction.receiverId) }})</span>
+              </td>
             </tr>
             <tr>
-              <td class="border px-4 py-2 font-semibold">Amount Sent</td>
-              <td class="border px-4 py-2">{{ selectedTransaction.currencySent }}{{ selectedTransaction.amountSent }}</td>
+              <td class="border px-4 py-2 font-semibold">
+                Amount Sent
+              </td>
+              <td class="border px-4 py-2">
+                {{ selectedTransaction.currencySent }}{{ selectedTransaction.amountSent }}
+              </td>
             </tr>
             <tr>
-              <td class="border px-4 py-2 font-semibold">Amount Received</td>
-              <td class="border px-4 py-2">{{ selectedTransaction.currencyReceived }}{{ selectedTransaction.amountReceived }}</td>
+              <td class="border px-4 py-2 font-semibold">
+                Amount Received
+              </td>
+              <td class="border px-4 py-2">
+                {{ selectedTransaction.currencyReceived }}{{ selectedTransaction.amountReceived }}
+              </td>
             </tr>
             <tr>
-              <td class="border px-4 py-2 font-semibold">Status</td>
-              <td class="border px-4 py-2">{{ selectedTransaction.status }}</td>
+              <td class="border px-4 py-2 font-semibold">
+                Status
+              </td>
+              <td class="border px-4 py-2">
+                {{ selectedTransaction.status }}
+              </td>
             </tr>
           </tbody>
         </table>
@@ -218,7 +255,7 @@ export default {
       selectedCustomer: '',
       transferAmount: '',
       transferRecipient: '',
-      selectedTransaction: null,
+      selectedTransactionId: null,
       isModalOpen: false
     };
   },
@@ -243,10 +280,13 @@ export default {
         transaction.senderId === this.customer.id || transaction.receiverId === this.customer.id
       ).reverse();
     },
+    selectedTransaction() {
+      this.getTransaction(this.selectedTransactionId);
+    }
   },
   methods: {
     showDetails(transaction) {
-      this.selectedTransaction = transaction;
+      this.selectedTransactionId = transaction.id;
       this.isModalOpen = true;
     },
     getIban(id) {

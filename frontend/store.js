@@ -6,7 +6,7 @@ const state = reactive({
   entities: null,
   messageEntities: null,
   customers: null,
-  transactions: null
+  transactions: null,
 });
 
 async function queryData() {
@@ -21,8 +21,13 @@ function getTable(table) {
   return state[table];
 }
 
+function getTransaction(id) {
+  return state.transactions.find(obj => obj.id === id);
+}
+
 export default {
   ...toRefs(state),
   queryData,
-  getTable
+  getTable,
+  getTransaction
 };
