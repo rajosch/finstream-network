@@ -100,7 +100,7 @@
           <h3 class="text-lg font-semibold mb-2 text-gray-700">
             Transfers
           </h3>
-          <div class="h-64 overflow-auto text-gray-600 grid">
+          <div class="h-64 overflow-auto text-gray-600">
             <div
               v-for="(transaction, index) in selectedCustomerTransactions"
               :key="transaction.id"
@@ -281,7 +281,7 @@ export default {
       ).reverse();
     },
     selectedTransaction() {
-      this.getTransaction(this.selectedTransactionId);
+      return this.getTransaction(this.selectedTransactionId);
     }
   },
   methods: {
