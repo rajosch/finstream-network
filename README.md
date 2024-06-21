@@ -8,6 +8,7 @@
 * [ ] Set up the encryption to be bank/gateway bank/bank/gateway where appropriate
 * [ ] Setup up transaction
   * [X] Realize transfer without blockchain first
+  * [ ] create messages on transfer with stand-in blockchain data
   * [ ] Add blockchain calls to transaction
 * [X] Set up state management & make database info global
 * [X] Add functions to update database info
