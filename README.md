@@ -13,7 +13,6 @@
 * [X] Add functions to update database info
 * [X] Add `sent and recieved transactions (including status)` for customer interface
 * [X] fix selectedTransaction bug in the mock-bank component
-* [ ] Check against on-chain root to verify messages on the finstream-panel
 * [ ] Put explanations in the about section (from readme info TBD)
 * [ ] Make `explanation video` and add it to the `About` section
 
@@ -39,6 +38,7 @@
 * [X] handle merkle tree validation on server side
 * [X] Make sure the XSD content is handled on the server side
 * [X] split up gateway and bank databases for clearer structure
+* [ ] Check against on-chain root to verify messages
 
 ## Future Work
 

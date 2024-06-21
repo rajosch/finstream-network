@@ -122,3 +122,14 @@ export const updateMessageVerificationState = async (messageId, newState, port =
     throw error;
   }
 };
+
+export const verifyMessage = async (ticketId, messageHash, port = 3000) => {
+  try {
+    const apiClient = createApiClient(port);
+    const response = await apiClient.get(`/messages/${ticketId}/${messageHash}/verify`);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating transaction status:', error);
+    throw error;
+  }
+};

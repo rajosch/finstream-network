@@ -331,7 +331,8 @@ app.get('/messages/:ticketId/create-merkle-tree', (req, res) => {
   });
 });
 
-app.get('/messages/:ticketId/:messageHash/create-proof', async (req, res) => {
+// TODO verify agains on-chain root
+app.get('/messages/:ticketId/:messageHash/verify', async (req, res) => {
   try {
     const ticketId = req.params.ticketId;
     const messageHash = req.params.messageHash;

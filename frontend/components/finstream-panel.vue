@@ -221,10 +221,21 @@ export default {
         console.log("Verifyfing message: ", messages[i].id);
         messages[i].verified = 'checking validity';
 
-        // TODO check validity of the message hash agains the root hash on-chain
+        const response = await verifyMessage(messages[0].ticketId, messages[i].messageHash, 3000);
 
-        await this.sleep(2000);
-        const newState = 'verified';
+        console.log(response);
+
+        await this.sleep(1000);
+
+        let newState = 'undefined';
+
+        if(response.result) {
+          newState = 'verified';
+        }else {
+          newState = 'corrupted'
+          alert(response.message);
+        }
+
         messages[i].verified = newState;
         newStates.push(newState);
       }      
