@@ -35,8 +35,8 @@
 * [X] Add extra table with `sender`, `receiver` and `status`
 * [X] Add logic to query messages connected to messageId (one transaction)
 * [X] Create Message route should return the ticket ID or an error message
-* [ ] handle merkle tree creation on server side
-* [ ] handle merkle tree validation on server side
+* [X] handle merkle tree creation on server side
+* [X] handle merkle tree validation on server side
 * [X] Make sure the XSD content is handled on the server side
 * [X] split up gateway and bank databases for clearer structure
 

@@ -7,6 +7,7 @@ const protobuf = require('protobufjs');
 const db = require('./database');
 
 const { orderMessages } = require('./index');
+const { buildMerkleTree, createProof, verifyProof } = require('../../merkle-tree-validator/src/index');
 
 const app = express();
 const port = 3000;
@@ -304,47 +305,80 @@ app.put('/messages/:id/verified', (req, res) => {
   stmt.finalize();
 });
 
-// TODO fix this
 app.get('/messages/:ticketId/create-merkle-tree', (req, res) => {
   const ticketId = req.params.ticketId;
 
-  const initialQuery = 'SELECT * FROM messages WHERE ticketId = ?';
+  const query = 'SELECT * FROM messages WHERE ticketId = ?';
 
-  db.get(initialQuery, [ticketId], (err, rootMessage) => {
+  db.all(query, [ticketId], (err, rows) => {
     if (err) {
       return res.status(500).send(err.message);
     }
-    if (!rootMessage) {
-      return res.status(404).send('Message not found');
+    if (!rows || rows.length === 0) {
+      return res.status(404).send('Messages not found');
     }
+    
+    const orderedMessages = orderMessages(rows);
 
-    const query = `
-    WITH RECURSIVE connected_messages AS (
-        SELECT * FROM messages WHERE id = ?
-        UNION
-        SELECT m.* FROM messages m
-        INNER JOIN connected_messages cm ON m.parent = cm.id
-    )
-    SELECT * FROM connected_messages ORDER BY id;
-    `;
+    // Strip message hashes of the message objects
+    const messageHashes = orderedMessages.map(obj => [obj.messageHash]);
 
-    db.all(query, [rootMessage.id], (err, rows) => {
-      if (err) {
-        return res.status(500).send(err.message);
-      }
+    const leafEncoding = ['string'];
 
-      const values = rows.map(row => [row.encryptedData]);
-      const leafEncoding = ['string'];
+    const merkleTree = buildMerkleTree(messageHashes, leafEncoding);
 
-      console.log(values);
-
-      const merkleTree = buildMerkleTree(values, leafEncoding);
-      res.send(merkleTree);
-    });
+    res.send(merkleTree);
   });
 });
 
-// TODO do node node validity check
+app.get('/messages/:ticketId/:messageHash/create-proof', async (req, res) => {
+  try {
+    const ticketId = req.params.ticketId;
+    const messageHash = req.params.messageHash;
+
+    const query = 'SELECT * FROM messages WHERE ticketId = ?';
+    const rows = await new Promise((resolve, reject) => {
+      db.all(query, [ticketId], (err, rows) => {
+        if (err) {
+          return reject(err);
+        }
+        resolve(rows);
+      });
+    });
+
+    if (!rows || rows.length === 0) {
+      return res.status(404).send({ result: false, message: 'Messages not found' });
+    }
+    
+    const orderedMessages = orderMessages(rows);
+
+    // Strip message hashes of the message objects
+    const messageHashes = orderedMessages.map(obj => [obj.messageHash]);
+
+    const leafEncoding = ['string'];
+
+    const merkleTree = buildMerkleTree(messageHashes, leafEncoding);
+
+    // Check if the Merkle tree root equals that saved on-chain
+    // const onChainRoot = await getRoot(ticketId);
+    // if (onChainRoot !== merkleTree.root) {
+    //   return res.send({ result: false, message: 'Data corruption detected: On-chain root does not match Merkle tree root' });
+    // }
+
+    const proof = createProof(merkleTree, [messageHash]);
+
+    const result = verifyProof(merkleTree.root, leafEncoding, [messageHash], proof);
+
+    if (!result) {
+      return res.send({ result: false, message: 'Verification failed: Proof could not be verified' });
+    }
+
+    res.send({ result: true, message: 'Proof successfully verified' });
+
+  } catch (err) {
+    res.status(500).send({ result: false, message: `Internal server error: ${err.message}` });
+  }
+});
 
 app.get('/entities', (req, res) => {
   db.all('SELECT * FROM entities', [], (err, rows) => {
