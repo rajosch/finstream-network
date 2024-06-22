@@ -1,12 +1,51 @@
-const ethers = require('ethers');
-const { getRandomBytes } = require('ethereum-cryptography/random');
-const { encrypt, decrypt } = require('ethereum-cryptography/aes');
-const { pbkdf2 } = require('ethereum-cryptography/pbkdf2');
+import { ethers } from 'ethers';
+import crypto from 'crypto';
 
-// ethers.JsonRpcProvider
+// Encrypt data using AES-256-CBC
+async function encrypt(data, key, iv) {
+    const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
+    let encrypted = cipher.update(data);
+    encrypted = Buffer.concat([encrypted, cipher.final()]);
+    return encrypted;   
+}
 
-async function encryptFile(data, wallets, parent, ticketId) {
-    const symmetricKey = await getRandomBytes(16);
+// Decrypt data using AES-256-CBC
+async function decrypt(encryptedData, key, iv) {
+    const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
+    let decrypted = decipher.update(encryptedData);
+    decrypted = Buffer.concat([decrypted, decipher.final()]);
+    return decrypted;
+}
+
+// Derive key from private key using PBKDF2
+async function deriveKeyFromPrivateKey(privateKey, salt) {
+    return crypto.pbkdf2Sync(Buffer.from(privateKey, 'hex'), salt, 100000, 32, 'sha256');
+}
+
+// Encrypt symmetric key using a derived key
+async function encryptSymmetricKey(key, privateKey, getRandomBytes) {
+    const salt = await getRandomBytes(16);
+    const derivedKey = await deriveKeyFromPrivateKey(privateKey, salt);
+    const iv = await getRandomBytes(16);
+    const encryptedKey = await encrypt(key, derivedKey, iv);
+
+    return {
+        encryptedKey: encryptedKey.toString('hex'),
+        iv: iv.toString('hex'),
+        salt: salt.toString('hex')
+    };
+}
+
+// Decrypt symmetric key using a derived key
+async function decryptSymmetricKey(privateKey, data) {
+    const wallet = new ethers.Wallet(privateKey);
+    const walletData = data.find(obj => obj.publicKey === wallet.address);
+    const derivedKey = await deriveKeyFromPrivateKey(privateKey, Buffer.from(walletData.salt, 'hex'));
+    return decrypt(Buffer.from(walletData.encryptedKey, 'hex'), derivedKey, Buffer.from(walletData.iv, 'hex'));
+}
+
+export async function encryptFile(data, wallets, parent, ticketId, getRandomBytes) {
+    const symmetricKey = await getRandomBytes(32);
     const iv = await getRandomBytes(16);
 
     // Encrypt the binary file with the symmetric key
@@ -15,10 +54,9 @@ async function encryptFile(data, wallets, parent, ticketId) {
     const walletEncryptions = [];
 
     // Encrypt symmetric key 
-    for(let index in wallets) {
-        const wallet = wallets[index];
-        const walletData = await encryptSymmetricKey(symmetricKey, wallet.privateKey); 
-        walletData.publicKey = wallet.publicKey;
+    for (const wallet of wallets) {
+        const walletData = await encryptSymmetricKey(symmetricKey, wallet.privateKey, getRandomBytes);
+        walletData.publicKey = new ethers.Wallet(wallet.privateKey).address;
         walletEncryptions.push(walletData);
     }
 
@@ -38,59 +76,7 @@ async function encryptFile(data, wallets, parent, ticketId) {
     return output;
 }
 
-async function decryptFile(data, wallet){
-    const symmetricKey = await decryptSymmetricKey(wallet, data.symmetricKey)
-    return decrypt(toUint8Array(data.encryptedData), symmetricKey, toUint8Array(data.iv));
+export async function decryptFile(data, privateKey) {
+    const symmetricKey = await decryptSymmetricKey(privateKey, data.symmetricKey);
+    return decrypt(Buffer.from(data.encryptedData, 'hex'), symmetricKey, Buffer.from(data.iv, 'hex'));
 }
-
-async function decryptSymmetricKey(wallet, data) {
-    const walletData = data.find(obj => obj.publicKey === wallet.publicKey);
-    const symmetricKey = await deriveKeyFromPrivateKey(wallet.privateKey, toUint8Array(walletData.salt));
-    return decrypt(toUint8Array(walletData.encryptedKey), symmetricKey, toUint8Array(walletData.iv));
-}
-
-
-// Helper functions
-function hexToUint8Array(hexString) {
-    if (hexString.startsWith('0x')) {
-      hexString = hexString.slice(2);
-    }
-  
-    if (hexString.length % 2 !== 0) {
-      throw new Error('Invalid hex string');
-    }
-  
-    const byteArray = new Uint8Array(hexString.length / 2);
-    for (let i = 0; i < hexString.length; i += 2) {
-      byteArray[i / 2] = parseInt(hexString.substr(i, 2), 16);
-    }
-  
-    return byteArray;
-}
-
-function toUint8Array(str) {
-    return new Uint8Array(str.split(',').map(Number));
-}  
-
-
-async function deriveKeyFromPrivateKey(privateKey, salt) {
-    return pbkdf2(hexToUint8Array(privateKey), salt, 100000, 16, 'sha256');
-}
-
-async function encryptSymmetricKey(key, privateKey) {
-    const salt = await getRandomBytes(16);
-    const symmetricKey = await deriveKeyFromPrivateKey(privateKey, salt);
-    const iv = await getRandomBytes(16);
-    const encryptedKey = await encrypt(key, symmetricKey, iv);
-
-    return {
-        encryptedKey: encryptedKey.toString('hex'),
-        iv: iv.toString('hex'),
-        salt: salt.toString('hex')
-    };
-}
-
-module.exports = {
-    encryptFile,
-    decryptFile,
-};

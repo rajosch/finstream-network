@@ -1,8 +1,9 @@
-const { encryptFile } = require("../../multi-party-encrypter");
+// const { encryptFile } = require("../../multi-party-encrypter");
+const { ethers } = require('ethers')
 const { validateXML, xmlToBin } = require("../../xml-processor");
 const xmlbuilder = require('xmlbuilder');
 
-async function createMessage(messageType, wallets, messageArgs, ticketId, xsdContent, root, parent) {
+async function createMessage(messageType, messageArgs, ticketId, xsdContent, root, parent) {
   let message = null;
 
   if (messageType.localeCompare('pain.001.001.12') === 0) {
@@ -18,8 +19,16 @@ async function createMessage(messageType, wallets, messageArgs, ticketId, xsdCon
       // Parse XML to binary
       const buffer = await xmlToBin(message, root, 'Document');
 
+      const messageHash = ethers.keccak256(buffer);
+
       // Encrypt message
-      return encryptFile(buffer, wallets, parent, ticketId);
+      // return encryptFile(buffer, wallets, parent, ticketId);
+      return {
+        data: buffer,
+        parent: parent,
+        messageHash: messageHash,
+        ticketId: ticketId
+      }
     }
   }
 

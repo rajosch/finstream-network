@@ -1,21 +1,16 @@
 const { createMessage, orderMessages } = require('../src');
-const { encryptFile } = require('../../multi-party-encrypter');
 const { validateXML, xmlToBin } = require('../../xml-processor');
 const protobuf = require('protobufjs');
 const path = require('path');
 const fs = require('fs');
+const { ethers } = require('ethers');
 
 jest.mock('../../xml-processor', () => ({
   validateXML: jest.fn(),
   xmlToBin: jest.fn(),
 }));
 
-jest.mock('../../multi-party-encrypter', () => ({
-  encryptFile: jest.fn(),
-}));
-
 describe('createMessage', () => {
-  const wallets = ["wallet1", "wallet2"];
   const ticketId = "ticket123";
 
   beforeEach(() => {
@@ -51,21 +46,27 @@ describe('createMessage', () => {
     
     validateXML.mockReturnValue(true);
     xmlToBin.mockResolvedValue(Buffer.from('binary data'));
-    encryptFile.mockResolvedValue('encrypted data');
 
-    const result = await createMessage(messageType, wallets, messageArgs, ticketId, xsdContent, root, null);
+    const result = await createMessage(messageType, messageArgs, ticketId, xsdContent, root, null);
+
+    const buffer = Buffer.from('binary data');
+    const messageHash = ethers.keccak256(buffer);
 
     expect(validateXML).toHaveBeenCalledWith(expect.any(String), xsdContent);
     expect(xmlToBin).toHaveBeenCalledWith(expect.any(String), expect.any(Object), 'Document');
-    expect(encryptFile).toHaveBeenCalledWith(Buffer.from('binary data'), wallets, null, ticketId);
-    expect(result).toBe('encrypted data');
+    expect(result).toEqual({
+      data: buffer,
+      parent: null,
+      messageHash: messageHash,
+      ticketId: ticketId
+    });
   });
 
   it('should return null if message type is invalid', async () => {
     const messageType = 'invalid.message.type';
     const messageArgs = {};
     
-    const result = await createMessage(messageType, wallets, messageArgs, ticketId);
+    const result = await createMessage(messageType, messageArgs, ticketId);
     
     expect(result).toBeNull();
   });
@@ -99,7 +100,7 @@ describe('createMessage', () => {
     
     validateXML.mockReturnValue(false);
 
-    const result = await createMessage(messageType, wallets, messageArgs, ticketId, xsdContent, root, null);
+    const result = await createMessage(messageType, messageArgs, ticketId, xsdContent, root, null);
 
     expect(validateXML).toHaveBeenCalledWith(expect.any(String), xsdContent);
     expect(result).toBeNull();
@@ -140,4 +141,3 @@ describe('orderMessages', () => {
     expect(() => orderMessages(messagesWithMultipleRoots)).toThrow('There should be exactly one root message');
   });
 });
-

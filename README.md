@@ -5,10 +5,9 @@
 ### Frontend
 
 * [X] Plan out transaction steps
-* [ ] Set up the encryption to be bank/gateway bank/bank/gateway where appropriate
 * [ ] Setup up transaction
   * [X] Realize transfer without blockchain first
-  * [ ] create messages on transfer with stand-in blockchain data
+  * [ ] create messages on transfer with stand-in blockchain data (continue creating the messages)
   * [ ] Add blockchain calls to transaction
 * [X] Set up state management & make database info global
 * [X] Add functions to update database info
@@ -16,6 +15,7 @@
 * [X] fix selectedTransaction bug in the mock-bank component
 * [ ] Put explanations in the about section (from readme info TBD)
 * [ ] Make `explanation video` and add it to the `About` section
+* [ ] Explain that encryption is taken out for PoC but would be possible (multi-party-encryption)
 
 ### Blockchain
 
@@ -39,6 +39,7 @@
 * [X] handle merkle tree validation on server side
 * [X] Make sure the XSD content is handled on the server side
 * [X] split up gateway and bank databases for clearer structure
+* [ ] Adjust encryption method to not make sending of private keys or wallets to the server necessary
 * [ ] Check against on-chain root to verify messages
 
 ## Future Work
