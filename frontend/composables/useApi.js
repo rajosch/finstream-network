@@ -40,15 +40,15 @@ export const updateCustomerBalance = async (customerId, newBalance, port = 3000)
   }
 };
 
-export const createMessage = async (messageType, wallets, messageArgs, ticketId, parent, port = 3000) => {
+export const createMessage = async (messageType, messageArgs, ticketId, parent, entityIds, port = 3000) => {
   try {
     const apiClient = createApiClient(port);
     const response = await apiClient.post('/create-message', {
       messageType,
-      wallets,
       messageArgs,
       ticketId,
-      parent
+      parent,
+      entityIds
     });
     return response.data;
   } catch (error) {
@@ -127,6 +127,17 @@ export const verifyMessage = async (ticketId, messageHash, port = 3000) => {
   try {
     const apiClient = createApiClient(port);
     const response = await apiClient.get(`/messages/${ticketId}/${messageHash}/verify`);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating transaction status:', error);
+    throw error;
+  }
+};
+
+export const createMerkleTree = async (ticketId, port = 3000) => {
+  try {
+    const apiClient = createApiClient(port);
+    const response = await apiClient.get(`/messages/${ticketId}/create-merkle-tree`);
     return response.data;
   } catch (error) {
     console.error('Error updating transaction status:', error);

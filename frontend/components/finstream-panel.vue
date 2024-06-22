@@ -34,11 +34,8 @@
       v-else
       class="w-2/3 max-w-5xl p-8 bg-white rounded shadow-lg relative"
     >
-      <div class="text-gray-700 text-lg font-semibold flex items-center gap-x-5 mb-5">
+      <div class="text-gray-700 text-lg font-semibold mb-5">
         {{ bank.name }}
-        <span class="text-sm font-normal">
-          {{ bank.address }}
-        </span>
       </div>
       <div class="absolute top-4 right-4 text-gray-700">
         <button
@@ -141,7 +138,7 @@
                           </span>
                           <span v-else-if="value === 'verified'" class="text-green-500">Verified</span>
                           <span v-else-if="value === 'corrupted'" class="text-red-500">Corrupted</span>
-                          <span v-else>{{ value }}</span>
+                          <span v-else>{{ truncatedValue(value) }}</span>
                         </td>
                       </tr>
                     </tbody>
@@ -194,6 +191,9 @@ export default {
         this.loggedIn = true;
         this.transactions = await getMessagesByEntityName(this.selectedBank);
       }
+    },
+    truncatedValue(value) {
+      return value && value.length > 20 ? value.substring(0, 20) + '...' : value;
     },
     logOut() {
       this.loggedIn = false;

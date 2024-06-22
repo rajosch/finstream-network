@@ -243,7 +243,6 @@
 </template>
 
 <script>
-import { ethers } from 'ethers';
 import store from "~/store";
 
 export default {
@@ -269,7 +268,10 @@ export default {
       return this.entities.find(obj => obj.name === this.selectedBank);
     },
     customer() {
-      return this.customers.find(obj => obj.name === this.selectedCustomer)
+      return this.customers.find(obj => obj.name === this.selectedCustomer);
+    },
+    gateway() {
+      return this.entities.find(obj => obj.name === 'gateway');
     },
     availableCustomers() {
       return this.selectedBank.localeCompare('Bank USA') === 0 ? ['Alice', 'Charlie'] : ['Bob', 'Diana']
@@ -318,10 +320,6 @@ export default {
         alert('Transaction could not be executed because the amount or the recipient was not valid.');
       }
 
-      const euWallet = new ethers.Wallet((this.entities.find(obj => obj.name === 'EU Bank')).privateKey);
-      const usaWallet = new ethers.Wallet((this.entities.find(obj => obj.name === 'USA Bank')).privateKey);
-      const gatewayWallet = new ethers.Wallet((this.entities.find(obj => obj.name === 'gateway')).privateKey);
-
       // Get Bank customers
       const debtor = this.customer;
       const creditor = this.customers.find(obj => obj.name === this.transferRecipient);
@@ -355,19 +353,8 @@ export default {
       /**
        * TODO
        * - Mint transaction ticket
-       * - Create transaction message
-       * - setup merkle root
-       * - update merkle root on chain
        */
       const ticketId = Date.now().toString(); // await createTicket(...);
-
-      let wallets = [gatewayWallet];
-
-      if(this.getName(debtor.id).localeCompare('US Bank') === 0) {
-        wallets.push(usaWallet);
-      } else {
-        wallets.push(euWallet);
-      }
 
       // Create time stamp
       const date = new Date();
@@ -393,27 +380,37 @@ export default {
 
 
       let messageArgs = {
-        msgId,
+        msgId: 'S-BU-001',
         creDtTm: formattedDate,
         nbOfTxs: '1',
         ctrlSum: this.transferAmount,
         initgPtyNm: debtor.name,
-        pmtInfId,
+        pmtInfId: 'X-BA-PAY001',
         pmtMtd: 'TRF',
         pmtTpInfSvcLvlCd: 'NORM',
         reqdExctnDt: formattedLastHourLastSecondDate,
         dbtrNm: debtor.name,
         dbtrAcctIBAN: debtor.iban,
         dbtrAgtBICFI: debtor.currency === '$' ? 'BANKUS22' : 'BANKEU11',
-        endToEndId,
+        endToEndId: 'abc123',
         instdAmtCcy: debtor.currency === '$' ? 'USD' : 'EUR',
         instdAmt: this.transferAmount,
         cdtrAgtBICFI: debtor.currency === '$' ? 'BANKEU11' : 'BANKUS22',
         cdtrAcctIBAN: creditor.iban
       };
 
-      let message = await createMessage('pain.001.001.12', wallets, messageArgs, ticketId, null, 3000);
+      let message = await createMessage('pain.001.001.12', messageArgs, ticketId, null, [this.gateway.id, this.bank.id], 3000);
 
+      if(!message) {
+        alert('Could not create message: pain.001.001.12');
+      }
+
+      /**
+       * - setup merkle root
+       * - update merkle root on chain
+      */
+
+      let parent = message.messageId;
 
       // Update transaction status to frowareded
       await updateTransactionStatus(transactionId, 'forwarded', 3001);
