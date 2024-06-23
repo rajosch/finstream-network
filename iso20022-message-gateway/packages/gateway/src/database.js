@@ -5,6 +5,8 @@ db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS entities (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT,
+        address TEXT,
+        privateKey TEXT,
         currency TEXT
     )`);
     

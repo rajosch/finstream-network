@@ -267,6 +267,9 @@ export default {
     bank() {
       return this.entities.find(obj => obj.name === this.selectedBank);
     },
+    otherBank() {
+      return  this.selectedBank.localeCompare('Bank USA') === 0 ? this.entities.find(obj => obj.name === 'Bank EU') : this.entities.find(obj => obj.name === 'Bank USA');
+    },
     customer() {
       return this.customers.find(obj => obj.name === this.selectedCustomer);
     },
@@ -380,35 +383,38 @@ export default {
 
 
       let messageArgs = {
-        msgId: 'S-BU-001',
+        msgId: 'S-BU-001', // This is just an example value for the PoC
         creDtTm: formattedDate,
         nbOfTxs: '1',
         ctrlSum: this.transferAmount,
         initgPtyNm: debtor.name,
-        pmtInfId: 'X-BA-PAY001',
+        pmtInfId: 'X-BA-PAY001', // This is just an example value for the PoC
         pmtMtd: 'TRF',
         pmtTpInfSvcLvlCd: 'NORM',
         reqdExctnDt: formattedLastHourLastSecondDate,
         dbtrNm: debtor.name,
         dbtrAcctIBAN: debtor.iban,
         dbtrAgtBICFI: debtor.currency === '$' ? 'BANKUS22' : 'BANKEU11',
-        endToEndId: 'abc123',
+        endToEndId: 'abc123', // This is just an example value for the PoC
         instdAmtCcy: debtor.currency === '$' ? 'USD' : 'EUR',
         instdAmt: this.transferAmount,
         cdtrAgtBICFI: debtor.currency === '$' ? 'BANKEU11' : 'BANKUS22',
         cdtrAcctIBAN: creditor.iban
       };
 
-      let message = await createMessage('pain.001.001.12', messageArgs, ticketId, null, [this.gateway.id, this.bank.id], 3000);
+      let message = await createMessage('pain.001.001.12', messageArgs, ticketId, null, [this.bank.id, this.gateway.id], 3000);
 
       if(!message) {
         alert('Could not create message: pain.001.001.12');
       }
 
       /**
+       * TODO
        * - setup merkle root
        * - update merkle root on chain
       */
+
+
 
       let parent = message.messageId;
 
@@ -423,13 +429,35 @@ export default {
       const rateNumber = 1.07; // TODO await getExchangeRate(...)
       const exchangeRate = debtor.currency === '$' ? (1 / rateNumber) : rateNumber; 
 
-      /**
-       * - Create transaction message
-       * - update merkle root
-       */
-      
       const amountReceived = this.transferAmount * exchangeRate;
 
+      messageArgs = {
+        tradDt: formattedDate,
+        orgtrRef: 'abc123', // This is just an example value for the PoC
+        tradgSdIdAnyBIC: debtor.currency === '$' ? 'BANKUS22' : 'BANKEU11',
+        ctrPtySdIdAnyBIC: 'FNSTAC11', // This is just an example value for the PoC
+        tradgSdBuyAmtIdr: debtor.currency === '$' ? 'U8D4N2XJF' : 'R7H2JDXF3',
+        tradgSdBuyAmtUnit: parseFloat(amountReceived).toFixed(2).toString(),
+        tradgSdSellAmtIdr:  debtor.currency === '$' ? 'R7H2JDXF3' : 'U8D4N2XJF',
+        tradgSdSellAmtUnit: this.transferAmount,
+        sttlmDt: formattedLastHourLastSecondDate,
+        xchgRate: exchangeRate.toString()
+      };
+
+      message = await createMessage('fxtr.014.001.05', messageArgs, ticketId, parent, [this.gateway.id, this.bank.id], 3000);
+
+      if(!message) {
+        alert('Could not create message: fxtr.014.001.05');
+      }
+
+      /**
+       * TODO
+       * - update merkle root on-chain
+       */
+
+
+      parent = message.messageId;
+      
       await updateTransactionAmountReceived(transactionId, amountReceived, 3001);
       await updateTransactionStatus(transactionId, 'exchange rate set', 3001);
 
@@ -438,10 +466,37 @@ export default {
 
       await this.sleep(2000);
 
+      messageArgs = {
+        msgId: 'BU-FN-001', // This is just an example value for the PoC
+        creDtTm: formattedDate,
+        nbOfTxs: '1',
+        ctrlSum: this.transferAmount,
+        initgPtyNm: debtor.name,
+        pmtInfId: 'BU-FN-PAY001', // This is just an example value for the PoC
+        pmtMtd: 'TRF',
+        pmtTpInfSvcLvlCd: 'NORM',
+        reqdExctnDt: formattedLastHourLastSecondDate,
+        dbtrNm: debtor.name,
+        dbtrAcctIBAN: debtor.iban,
+        dbtrAgtBICFI: debtor.currency === '$' ? 'BANKUS22' : 'BANKEU11',
+        endToEndId: 'abc123', // This is just an example value for the PoC
+        instdAmtCcy: debtor.currency === '$' ? 'USD' : 'EUR',
+        instdAmt: this.transferAmount,
+        cdtrAgtBICFI: debtor.currency === '$' ? 'BANKEU11' : 'BANKUS22',
+        cdtrAcctIBAN: creditor.iban
+      };
+
+      message = await createMessage('pain.001.001.12', messageArgs, ticketId, parent, [this.bank.id, this.gateway.id], 3000);
+
+      if(!message) {
+        alert('Could not create message: pain.001.001.12');
+      }
       /**
-       * - Create thrid message
-       * - update merkle root
-       */
+        * TODO 
+        * - update merkle root
+      */
+
+      parent = message.messageId;
 
        await updateTransactionStatus(transactionId, 'transfering funds', 3001);
 
@@ -449,15 +504,65 @@ export default {
       // Update tables
       await this.queryData();
 
+      messageArgs = {
+        msgId: 'FN-BE-001', // This is just an example value for the PoC
+        creDtTm: formattedDate,
+        nbOfTxs: '1',
+        ctrlSum: this.transferAmount,
+        initgPtyNm: debtor.name,
+        pmtInfId: 'FN-BE-PAY001', // This is just an example value for the PoC
+        pmtMtd: 'TRF',
+        pmtTpInfSvcLvlCd: 'NORM',
+        reqdExctnDt: formattedLastHourLastSecondDate,
+        dbtrNm: debtor.name,
+        dbtrAcctIBAN: debtor.iban,
+        dbtrAgtBICFI: debtor.currency === '$' ? 'BANKUS22' : 'BANKEU11',
+        endToEndId: 'abc123', // This is just an example value for the PoC
+        instdAmtCcy: debtor.currency === '$' ? 'USD' : 'EUR',
+        instdAmt: this.transferAmount,
+        cdtrAgtBICFI: debtor.currency === '$' ? 'BANKEU11' : 'BANKUS22',
+        cdtrAcctIBAN: creditor.iban
+      };
+
+      message = await createMessage('pain.001.001.12', messageArgs, ticketId, parent, [this.gateway.id, this.otherBank.id], 3000);
+
+      if(!message) {
+        alert('Could not create message: pain.001.001.12');
+      }
+
+       /**
+        * TODO
+        * - update merkle root
+        */
+
+      parent = message.messageId;
+
       /**
+       * TODO
        * - transfer funds on chain
-       * - Create fourth message
-       * - update merkle root
        * - Create fith message
-       * - update merkle root
        */
 
-       await this.sleep(2000);
+      messageArgs = {
+        msgId: 'BANKUS33-20240504-124500-001', // This is just an example value for the PoC
+        creDtTm: formattedDate,
+        orgnlMsgId: 'S-BU-001', // This is just an example value for the PoC
+        orgnlMsgNmId: 'pain.001.001.12',
+        orgnlEndToEndId: 'abc123',
+        txSts: 'ACCP'
+      };
+
+      message = await createMessage('pacs.002.001.14', messageArgs, ticketId, parent, [this.otherBank.id, this.gateway.id, this.bank.id], 3000);
+
+      if(!message) {
+        alert('Could not create message: pacs.002.001.14');
+      }
+      /**
+        * TODO 
+        * - update merkle root
+      */
+
+      await this.sleep(2000);
 
       const newCreditorBalance = creditor.balance + amountReceived;
       await updateCustomerBalance(creditor.id, newCreditorBalance, 3001);

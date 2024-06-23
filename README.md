@@ -7,7 +7,7 @@
 * [X] Plan out transaction steps
 * [ ] Setup up transaction
   * [X] Realize transfer without blockchain first
-  * [ ] create messages on transfer with stand-in blockchain data (continue creating the messages)
+  * [X] create messages on transfer with stand-in blockchain data (continue creating the messages; setup the wallets again; need them for blockchain interaction)
   * [ ] Add blockchain calls to transaction
 * [X] Set up state management & make database info global
 * [X] Add functions to update database info
