@@ -19,22 +19,18 @@ db.serialize(() => {
         verified TEXT
     )`);
 
-    // db.run(`CREATE TABLE IF NOT EXISTS symmetricKeys (
-    //     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    //     messageId INTEGER,
-    //     encryptedKey TEXT,
-    //     iv TEXT,
-    //     salt TEXT,
-    //     publicKey TEXT,
-    //     FOREIGN KEY(messageId) REFERENCES messages(id)
-    // )`);
-
     db.run(`CREATE TABLE IF NOT EXISTS messageEntities (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         messageId INTEGER,
         entityId INTEGER,
         FOREIGN KEY(messageId) REFERENCES messages(id),
         FOREIGN KEY(entityId) REFERENCES entities(id)
+    )`);
+
+    db.run(`CREATE TABLE IF NOT EXISTS contracts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT,
+        address TEXT
     )`);
 });
 

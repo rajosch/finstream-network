@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-// Function to create an apiClient with the specified port
 const createApiClient = (port = 3000) => {
   return axios.create({
     baseURL: `http://localhost:${port}`,

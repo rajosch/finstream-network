@@ -197,7 +197,8 @@
         gatewayOptions: [
           'messages',
           'entities',
-          'messageEntities'
+          'messageEntities',
+          'contracts'
         ]
       };
     },

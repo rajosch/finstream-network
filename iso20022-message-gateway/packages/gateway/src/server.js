@@ -87,23 +87,24 @@ const insertMessageEntities = async () => {
 };
 
 const insertEntitiesSequentially = async () => {
+  // Private keys and addresses are only there for testing purposes. Never send any real funds there!
   const entities = [
     {
       name: 'Bank USA',
-      address: '0xFB78AF53Fc9BD34f9E078aCb912e8103F08C4819',
-      privateKey: '0xb62244005a84f03a995f9109187cac189f3e5d124016d52c731bf119a93cc8da',
+      address: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
+      privateKey: '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d',
       currency: '$'
     },
     {
       name: 'Bank EU',
-      address: '0xe725c3F6534563483D3a0Ede818868ceBB1a8c80',
-      privateKey: '0x29e23620daa4f30387565e3fea55bd415cfe8f26c1d6886ce25b801b887cc8da',
+      address: '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC',
+      privateKey: '0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a',
       currency: '€'
     },
     {
       name: 'gateway',
-      address: '0x3638Ee16d0FF3c81A5a104C555ab466b6129FF51',
-      privateKey: '0x7d5ce42ce71af1817a82a4d94939a71094fa9866138ac8548e5300eaeab179c9',
+      address: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
+      privateKey: '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80',
       currency: ''
     }
   ];
@@ -538,4 +539,27 @@ app.get('/messages/entity/:entityName', async (req, res) => {
   } catch (error) {
     res.status(500).send(error.message);
   }
+});
+
+app.get('/contracts', (req, res) => {
+  db.all('SELECT * FROM contracts', [], (err, rows) => {
+    if (err) {
+      return res.status(500).send(err.message);
+    }
+    res.send(rows);
+  });
+});
+
+// Route to add a new customer
+app.post('/contracts', (req, res) => {
+  const { name, address } = req.body;
+
+  const stmt = db.prepare('INSERT INTO contracts (name, address) VALUES (?, ?)');
+  stmt.run(name, address, function (err) {
+    if (err) {
+      return res.status(500).send(err.message);
+    }
+    res.status(201).send({ customerId: this.lastID });
+  });
+  stmt.finalize();
 });
