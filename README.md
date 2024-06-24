@@ -21,10 +21,10 @@
 
 * [X] Spin up local node with Hardhat
 * [X] Implement `Chainlink Price Feed`for Ethereum EUR/USD
-* [ ] Make sure EURC and USDC mock coins are deployed to local node and function
-* [ ] Adjust treasury
+* [X] Make sure EURC and USDC mock coins are deployed to local node and function
+* [X] Adjust treasury
 
-  * [ ] For PoC the banks have a lot of liquidity
+  * [X] For PoC the banks have a lot of liquidity
   * [X] add getExchagenRate call
   * [X] add transferFunds
 
