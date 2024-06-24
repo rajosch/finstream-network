@@ -2,7 +2,7 @@
 pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * @title MsgTicket
@@ -11,11 +11,9 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
  * The content of these messages is stored encrypted off-chain.
  * The tokens are soulbound and cannot be transferred.
  */
-contract MsgTicket is ERC721, AccessControl {
+contract MsgTicket is ERC721, Ownable {
     uint256 private _tokenIdCounter; 
-    mapping(uint256 => bytes32) private _merkleRoots; 
-
-    bytes32 public constant CONTROLLER_ROLE = keccak256("CONTROLLER_ROLE");
+    mapping(uint256 => bytes32) public merkleRoots; 
 
     /**
      * @dev Emitted when a new MsgTicket token is minted.
@@ -33,16 +31,13 @@ contract MsgTicket is ERC721, AccessControl {
      */
     event MerkleRootUpdated(uint256 indexed tokenId, bytes32 indexed merkleRoot, uint256 blockNumber);
 
-    constructor() ERC721("MsgTicket", "MTKT") {
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(CONTROLLER_ROLE, msg.sender);
-    }
+    constructor(address initialOwner) ERC721("MsgTicket", "MTKT") Ownable(initialOwner) {}
 
     /**
      * @dev Function to mint a new MsgTicket token.
      * @param to The address to which the token will be minted.
      */
-    function mintTicket(address to) public onlyRole(CONTROLLER_ROLE) returns (uint256 tokenId) {
+    function mintTicket(address to) public onlyOwner returns (uint256 tokenId) {
         tokenId = _tokenIdCounter; 
         _tokenIdCounter += 1; 
         _safeMint(to, tokenId); 
@@ -55,11 +50,11 @@ contract MsgTicket is ERC721, AccessControl {
      * @param tokenId The ID of the token whose Merkle root is to be updated.
      * @param merkleRoot The new Merkle root to be associated with the token.
      */
-    function updateMerkleRoot(uint256 tokenId, bytes32 merkleRoot) public onlyRole(CONTROLLER_ROLE) {
+    function updateMerkleRoot(uint256 tokenId, bytes32 merkleRoot) public onlyOwner {
         if(ownerOf(tokenId) == address(0)) {
             revert ERC721NonexistentToken(tokenId);
         }
-        _merkleRoots[tokenId] = merkleRoot; 
+        merkleRoots[tokenId] = merkleRoot; 
 
         emit MerkleRootUpdated(tokenId, merkleRoot, block.number);
     }
@@ -75,7 +70,7 @@ contract MsgTicket is ERC721, AccessControl {
         if(ownerOf(tokenId) == address(0)) {
             revert ERC721NonexistentToken(tokenId);
         }
-        bytes32 merkleRoot = _merkleRoots[tokenId]; 
+        bytes32 merkleRoot = merkleRoots[tokenId]; 
         return _verify(leaf, proof, merkleRoot); 
     }
 
@@ -102,12 +97,5 @@ contract MsgTicket is ERC721, AccessControl {
         }
 
         return computedHash == root;
-    }
-
-    /**
-     * @dev See {IERC165-supportsInterface}.
-     */
-    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721, AccessControl) returns (bool) {
-        return ERC721.supportsInterface(interfaceId) || AccessControl.supportsInterface(interfaceId);
     }
 }

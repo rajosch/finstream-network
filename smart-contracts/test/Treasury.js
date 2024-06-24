@@ -3,32 +3,27 @@ const { expect } = require("chai");
 
 describe("Treasury", function () {
   async function deployTreasuryFixture() {
-    const [admin, manager, controller, user, otherAccount] = await ethers.getSigners();
+    const [owner, user, otherAccount] = await ethers.getSigners();
 
     const MockCoin = await ethers.getContractFactory("MockCoin");
     const tokenA = await MockCoin.deploy("Token A", "TKNA");
     const tokenB = await MockCoin.deploy("Token B", "TKNB");
 
     const Treasury = await ethers.getContractFactory("Treasury");
-    const treasury = await Treasury.deploy();
-
-    await treasury.grantRole(await treasury.MANAGER_ROLE(), manager.address);
-    await treasury.grantRole(await treasury.CONTROLLER_ROLE(), controller.address);
+    const treasury = await Treasury.deploy(owner);
 
     // Mint sufficient tokens to add as liquidity to contract
-    const amount = ethers.parseUnits("1000", 18);
-    await tokenA.connect(manager).mint(manager.address, amount);
-    // Ensure the manager approves the Treasury contract to spend their tokens
-    await tokenA.connect(manager).approve(treasury, ethers.parseUnits("1000", 18));
+    const amount = ethers.parseUnits("5000", 18);
+    await tokenA.mint(owner.address, amount);
+    await tokenB.mint(owner.address, amount);
 
-    return { treasury, tokenA, tokenB, admin, manager, controller, user, otherAccount };
-  }
+    await tokenA.approve(treasury, ethers.parseUnits("1000", 18));
+    await tokenB.approve(treasury, ethers.parseUnits("1000", 18));
 
-  describe("Chainlink Price Feed", function () {
-    it("should fetch the latest price from Chainlink price feed", async function () {
-      // Chainlink price feed contract address EUR/USD (Sepolia)
-      const priceFeedAddress = "0x1a81afB8146aeFfCFc5E50e8479e826E7D55b910";
-  
+    // Chainlink price feed contract address EUR/USD (Sepolia)
+    const priceFeedAddress = "0x1a81afB8146aeFfCFc5E50e8479e826E7D55b910";
+
+
       // Chainlink price feed contract ABI
       const priceFeedAbi = [
         {
@@ -49,6 +44,13 @@ describe("Treasury", function () {
       ];
   
       const priceFeed = new ethers.Contract(priceFeedAddress, priceFeedAbi, ethers.provider);
+
+    return { treasury, tokenA, tokenB, owner, user, otherAccount, priceFeedAddress, priceFeed };
+  }
+
+  describe("Chainlink Price Feed", function () {
+    it("should fetch the latest price from Chainlink price feed", async function () {
+      const { priceFeed } = await loadFixture(deployTreasuryFixture);
   
       // Query the latest price
       const latestRoundData = await priceFeed.latestRoundData();
@@ -59,81 +61,107 @@ describe("Treasury", function () {
     }); 
   });
 
-  describe("Deployment", function () {
-    it("Should set the correct admin role", async function () {
-      const { treasury, admin } = await loadFixture(deployTreasuryFixture);
-
-      expect(await treasury.hasRole(await treasury.DEFAULT_ADMIN_ROLE(), admin.address)).to.be.true;
-    });
-
-    it("Should grant the manager role", async function () {
-      const { treasury, manager } = await loadFixture(deployTreasuryFixture);
-
-      expect(await treasury.hasRole(await treasury.MANAGER_ROLE(), manager.address)).to.be.true;
-    });
-
-    it("Should grant the controller role", async function () {
-      const { treasury, controller } = await loadFixture(deployTreasuryFixture);
-
-      expect(await treasury.hasRole(await treasury.CONTROLLER_ROLE(), controller.address)).to.be.true;
-    });
-  });
-
   describe("Managing Supported Tokens", function () {
-    it("Should allow the manager to add supported tokens", async function () {
-      const { treasury, tokenA, manager } = await loadFixture(deployTreasuryFixture);
+    it("Should allow the owner to add supported tokens", async function () {
+      const { treasury, tokenA } = await loadFixture(deployTreasuryFixture);
 
-      await treasury.connect(manager).addSupportedToken(tokenA);
+      await treasury.addSupportedToken(tokenA);
       expect(await treasury.supportedTokens(tokenA)).to.be.true;
     });
 
-    it("Should allow the manager to remove supported tokens", async function () {
-      const { treasury, tokenA, manager } = await loadFixture(deployTreasuryFixture);
+    it("Should allow the owner to remove supported tokens", async function () {
+      const { treasury, tokenA } = await loadFixture(deployTreasuryFixture);
 
-      await treasury.connect(manager).addSupportedToken(tokenA);
-      await treasury.connect(manager).removeSupportedToken(tokenA);
+      await treasury.addSupportedToken(tokenA);
+      await treasury.removeSupportedToken(tokenA);
       expect(await treasury.supportedTokens(tokenA)).to.be.false;
     });
   });
 
   describe("Liquidity Management", function () {
-    it("Should allow the manager to add liquidity", async function () {
-      const { treasury, tokenA, manager, admin } = await loadFixture(deployTreasuryFixture);
+    it("Should allow the owner to add liquidity", async function () {
+      const { treasury, tokenA, owner } = await loadFixture(deployTreasuryFixture);
 
-      await treasury.connect(manager).addSupportedToken(tokenA);
+      await treasury.addSupportedToken(tokenA);
 
-      await tokenA.connect(admin).approve(treasury, ethers.parseUnits("1000", 18));
-      await treasury.connect(manager).addLiquidity(tokenA, ethers.parseUnits("1000", 18));
+      await tokenA.approve(treasury, ethers.parseUnits("1000", 18));
+      await treasury.addLiquidity(tokenA, ethers.parseUnits("1000", 18), owner);
 
       expect(await tokenA.balanceOf(treasury)).to.equal(ethers.parseUnits("1000", 18));
+      expect(await tokenA.balanceOf(owner.address)).to.equal(ethers.parseUnits("4000", 18));
     });
 
-    it("Should allow the manager to remove liquidity", async function () {
-      const { treasury, tokenA, manager, admin } = await loadFixture(deployTreasuryFixture);
+    it("Should allow the owner to remove liquidity", async function () {
+      const { treasury, tokenB, owner } = await loadFixture(deployTreasuryFixture);
 
-      await treasury.connect(manager).addSupportedToken(tokenA);
+      await treasury.addSupportedToken(tokenB);
 
-      await tokenA.connect(admin).approve(treasury, ethers.parseUnits("1000", 18));
-      await treasury.connect(manager).addLiquidity(tokenA, ethers.parseUnits("1000", 18));
-      await treasury.connect(manager).removeLiquidity(tokenA, ethers.parseUnits("500", 18));
+      await tokenB.approve(treasury, ethers.parseUnits("1000", 18));
+      await treasury.addLiquidity(tokenB, ethers.parseUnits("1000", 18), owner);
+      await treasury.removeLiquidity(tokenB, ethers.parseUnits("500", 18), owner);
 
-      expect(await tokenA.balanceOf(treasury)).to.equal(ethers.parseUnits("500", 18));
-      expect(await tokenA.balanceOf(manager.address)).to.equal(ethers.parseUnits("500", 18));
+      expect(await tokenB.balanceOf(treasury)).to.equal(ethers.parseUnits("500", 18));
+      expect(await tokenB.balanceOf(owner.address)).to.equal(ethers.parseUnits("4500", 18));
     });
   });
 
   describe("Token Transfers", function () {
-    // Problems testing this locally
-    // it("Should allow the controller to transfer tokens on behalf of a client", async function () {
-    //   const { treasury, tokenA, controller, user, otherAccount, manager } = await loadFixture(deployTreasuryFixture);
+    it("Should allow the owner to transfer tokens on behalf of a client", async function () {
+      const { treasury, tokenA, tokenB, user, otherAccount, priceFeedAddress, priceFeed, owner } = await loadFixture(deployTreasuryFixture);
+  
+      // Query the latest price
+      const latestRoundData = await priceFeed.latestRoundData();
 
-    //   await treasury.connect(manager).addSupportedToken(tokenA);
-    //   await treasury.connect(manager).addLiquidity(tokenA, ethers.parseUnits("1000", 18));
+      const exchangeRate = ethers.formatUnits(latestRoundData.answer, 8);
 
-    //   await tokenA.connect(user).approve(treasury, ethers.parseUnits("1000", 18));
-    //   await treasury.connect(controller).transferTokens(tokenA, user.address, otherAccount.address, ethers.parseUnits("500", 18), user.address);
+      const amount = ethers.parseUnits("5000", 18);
+      await tokenA.mint(user.address, amount);
 
-    //   expect(await tokenA.balanceOf(otherAccount.address)).to.equal(ethers.parseUnits("500", 18));
-    // });
+      const sentAmount = 500;
+      const receivedAmount = sentAmount * exchangeRate;
+
+      await treasury.addSupportedToken(tokenA);
+      await treasury.addLiquidity(tokenA, ethers.parseUnits("1000", 18), owner);
+      await treasury.addSupportedToken(tokenB);
+      await treasury.addLiquidity(tokenB, ethers.parseUnits("1000", 18), owner);
+
+      // Set price feed
+      await treasury.setPriceFeed(tokenA, tokenB, priceFeedAddress);
+
+      await tokenA.connect(user).approve(treasury, ethers.parseUnits("1000", 18));
+      await treasury.transferTokens(tokenA, tokenB, user, otherAccount, ethers.parseUnits(sentAmount.toString(), 18));
+
+      expect(await tokenA.balanceOf(user.address)).to.equal(ethers.parseUnits("4500", 18));
+      expect(await tokenB.balanceOf(otherAccount.address)).to.equal(ethers.parseUnits(receivedAmount.toString(), 18));
+    });
+
+    it("Should allow the owner to transfer tokens on behalf of a client (inverted price feed)", async function () {
+      const { treasury, tokenA, tokenB, user, otherAccount, priceFeedAddress, priceFeed, owner } = await loadFixture(deployTreasuryFixture);
+  
+      // Query the latest price
+      const latestRoundData = await priceFeed.latestRoundData();
+
+      const exchangeRate = ethers.formatUnits(latestRoundData.answer, 8);
+
+      const amount = ethers.parseUnits("5000", 18);
+      await tokenB.mint(user.address, amount);
+
+      const sentAmount = 500;
+      const receivedAmount = sentAmount / exchangeRate;
+
+      await treasury.addSupportedToken(tokenA);
+      await treasury.addLiquidity(tokenA, ethers.parseUnits("1000", 18), owner);
+      await treasury.addSupportedToken(tokenB);
+      await treasury.addLiquidity(tokenB, ethers.parseUnits("1000", 18), owner);
+
+      // Set price feed
+      await treasury.setPriceFeed(tokenA, tokenB, priceFeedAddress);
+
+      await tokenB.connect(user).approve(treasury, ethers.parseUnits("1000", 18));
+      await treasury.transferTokens(tokenB, tokenA, user, otherAccount, ethers.parseUnits(sentAmount.toString(), 18));
+
+      expect(await tokenB.balanceOf(user.address)).to.equal(ethers.parseUnits("4500", 18));
+      expect(await tokenA.balanceOf(otherAccount.address)).to.equal(ethers.parseUnits(receivedAmount.toFixed(5).toString(), 18));
+    });
   });
 });

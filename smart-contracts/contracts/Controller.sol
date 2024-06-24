@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+
 import "./MsgTicket.sol";
 import "./Treasury.sol";
 
@@ -102,13 +103,13 @@ contract Controller is Ownable {
         address toToken,
         uint256 amount,
         uint256 ticketId,
+        bytes32 leaf,
         bytes32[] memory merkleProof
     ) public {
         require(clients[from], "Sender is not a registered client");
         require(clients[to], "Receiver is not a registered client");
 
         // Verify the message associated with the transaction using MsgTicket
-        bytes32 leaf = keccak256(abi.encodePacked(from, to, fromToken, amount));
         bool isValid = msgTicket.verifyMessage(ticketId, leaf, merkleProof);
         require(isValid, "Invalid transaction message");
 
@@ -133,5 +134,26 @@ contract Controller is Ownable {
         require(clients[msg.sender], "Sender is not a registered client");
         require(msg.sender == msgTicket.ownerOf(ticketId), "Sender is not the owner of the ticket");
         msgTicket.updateMerkleRoot(ticketId, merkleRoot);
+    }
+
+    // OnlyOwner functions from Treasury. AccessControl would be better here. This is just a quick and dirty solution.
+    function addSupportedToken(address token) public onlyOwner {
+        treasury.addSupportedToken(token);
+    }
+
+    function removeSupportedToken(address token) public onlyOwner {
+        treasury.removeSupportedToken(token);
+    }
+
+    function setPriceFeed(address fromToken, address toToken, address priceFeed) public onlyOwner {
+        treasury.setPriceFeed(fromToken, toToken, priceFeed);
+    }
+
+    function addLiquidity(address token, uint256 amount) public onlyOwner {
+        treasury.addLiquidity(token, amount, msg.sender);
+    }
+
+    function removeLiquidity(address token, uint256 amount) public onlyOwner {
+        treasury.removeLiquidity(token, amount, msg.sender);
     }
 }

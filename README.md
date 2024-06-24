@@ -20,14 +20,13 @@
 ### Blockchain
 
 * [X] Spin up local node with Hardhat
-* [ ] Implement `Chainlink Price Feed`for Ethereum EUR/USD
+* [X] Implement `Chainlink Price Feed`for Ethereum EUR/USD
 * [ ] Make sure EURC and USDC mock coins are deployed to local node and function
 * [ ] Adjust treasury
 
-  * [ ] For PoC there is always enough liquidity in the pool, the banks don't send anything themselves (they get credit/debt)
-  * [ ] There is a `debt` but they will never reach the end of it
-  * [ ] add getExchagenRate call
-  * [ ] add transferFunds
+  * [ ] For PoC the banks have a lot of liquidity
+  * [X] add getExchagenRate call
+  * [X] add transferFunds
 
 ### Backend / Gateway
 
@@ -39,7 +38,6 @@
 * [X] handle merkle tree validation on server side
 * [X] Make sure the XSD content is handled on the server side
 * [X] split up gateway and bank databases for clearer structure
-* [ ] Adjust encryption method to not make sending of private keys or wallets to the server necessary
 * [ ] Check against on-chain root to verify messages
 
 ## Future Work
