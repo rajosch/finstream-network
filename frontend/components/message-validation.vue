@@ -172,11 +172,11 @@
           creDtTm: obj.GrpHdr.CreDtTm,
           nbOfTxs: obj.GrpHdr.NbOfTxs,
           ctrlSum: obj.GrpHdr.CtrlSum,
-          initgPtyNm: obj.GrpHdr.InitgPty,
+          initgPtyNm: obj.GrpHdr.InitgPty.Nm,
           pmtInfId: obj.PmtInf.PmtInfId,
           pmtMtd: obj.PmtInf.PmtMtd,
           pmtTpInfSvcLvlCd: obj.PmtInf.PmtTpInf.SvcLvl.Cd,
-          reqdExctnDt: obj.PmtInf.ReqdExctnDt,
+          reqdExctnDt: obj.PmtInf.ReqdExctnDt.Dt,
           dbtrNm: obj.PmtInf.Dbtr.Nm,
           dbtrAcctIBAN: obj.PmtInf.DbtrAcct.Id.IBAN,
           dbtrAgtBICFI: obj.PmtInf.DbtrAgt.FinInstnId.BICFI,
@@ -219,7 +219,7 @@
         this.isModalOpen = true;
         this.selectedMessage = index;
       },
-     async  addMessage(id) {
+      async addMessage(id) {
         if(id === 1) {
           this.messages.push(
             {
@@ -390,8 +390,26 @@
           this.messages[3].messageHash = hash;
         }
       },
-      handleMessageUpdate(jsonData) {
-        this.messages[this.selectedMessage].data = jsonData;
+      async handleMessageUpdate(jsonData) {
+        this.isModalOpen = false;
+        this.messages[this.selectedMessage].message = jsonData;
+        console.log(jsonData)
+        if(this.selectedMessage === 0 || this.selectedMessage === 2) {
+          console.log(this.pain00100112Args(jsonData.Document.CstmrCdtTrfInitn));
+          const {binary, hash} = await getBinaryMessage(this.pain00100112Args(jsonData.Document.CstmrCdtTrfInitn), 'pain.001.001.12', 3000);
+          this.messages[this.selectedMessage].binData = binary;
+          this.messages[this.selectedMessage].messageHash = hash;
+        }else if (this.selectedMessage === 1){
+          const {binary, hash} = await getBinaryMessage(this.fxtr01400105(jsonData.Document.FXTradInstr), 'fxtr.014.001.05', 3000);
+          
+          this.messages[this.selectedMessage].binData = binary;
+          this.messages[this.selectedMessage].messageHash = hash;
+        }else if(this.selectedMessage === 3) {
+          const {binary, hash} = await getBinaryMessage(this.pacs00200114(jsonData.Document.FIToFIPmtStsRpt), 'pacs.002.001.14', 3000);
+          
+          this.messages[this.selectedMessage].binData = binary;
+          this.messages[this.selectedMessage].messageHash = hash;
+        }
       }
     }
   }

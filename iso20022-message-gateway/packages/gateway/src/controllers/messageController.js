@@ -85,11 +85,11 @@ exports.getMessagesForEntity = async (req, res) => {
 
 exports.getBinaryMessage = async (req, res) => {
   const { messageArgs, messageType } = req.params;
-
   try {
-    const {binary, hash } = await messageService.getBinaryMessage( messageArgs, messageType);
+    const {binary, hash } = await messageService.getBinaryMessage(messageArgs, messageType);
     res.send({binary: binary, hash: hash});
   } catch (error) {
     res.status(500).send(error.message);
   }
 };
+

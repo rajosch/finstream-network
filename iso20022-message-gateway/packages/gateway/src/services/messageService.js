@@ -229,11 +229,11 @@ exports.getBinaryMessage = async (messageArgs, messageType) => {
     let message = null;
 
     if (messageType.localeCompare('pain.001.001.12') === 0) {
-      message = createPain00100112(messageArgs);
+      message = createPain00100112(JSON.parse(messageArgs));
     } else if (messageType.localeCompare('fxtr.014.001.05') === 0) {
-      message = createFxtr01400105(messageArgs);
+      message = createFxtr01400105(JSON.parse(messageArgs));
     } else if (messageType.localeCompare('pacs.002.001.14') === 0) {
-      message = createPacs00200114(messageArgs);
+      message = createPacs00200114(JSON.parse(messageArgs));
     }
 
     const buffer = await xmlToBin(message, root, 'Document');

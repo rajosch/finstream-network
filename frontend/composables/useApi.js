@@ -175,7 +175,7 @@ export const validateMessage = async (message, messageType, port = 3000) => {
 export const getBinaryMessage = async (messageArgs, messageType, port = 3000) => {
   try {
     const apiClient = createApiClient(port);
-    const response = await apiClient.get(`messages/${messageArgs}/${messageType}/binary`);
+    const response = await apiClient.get(`messages/${JSON.stringify(messageArgs)}/${messageType}/binary`);
     return response.data;
   } catch (error) {
     console.error('Error getting binary message:', error);
