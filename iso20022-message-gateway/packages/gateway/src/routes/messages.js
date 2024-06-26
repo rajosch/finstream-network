@@ -10,5 +10,6 @@ router.get('/:ticketId/build-merkle-tree', messageController.buildMerkleTree);
 router.get('/:ticketId/:messageHash/verify', messageController.verifyMessage);
 router.get('/:ticketId/:messageHash/proof', messageController.getProof);
 router.get('/entity/:entityName', messageController.getMessagesForEntity);
+router.get('/:messageArgs/:messageType/binary', messageController.getBinaryMessage);
 
 module.exports = router;

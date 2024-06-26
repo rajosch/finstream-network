@@ -234,5 +234,8 @@ function createPacs00200114({
 
 module.exports = {
   createMessage,
-  orderMessages
+  orderMessages,
+  createPain00100112,
+  createFxtr01400105,
+  createPacs00200114
 };

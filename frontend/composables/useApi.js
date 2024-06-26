@@ -164,10 +164,7 @@ export const getProof = async (ticketId, messageHash, port = 3000) => {
 export const validateMessage = async (message, messageType, port = 3000) => {
   try {
     const apiClient = createApiClient(port);
-    const response = await apiClient.post(`/${message}/${messageType}/validate`, {
-      message,
-      messageType,
-    });
+    const response = await apiClient.post(`/${message}/${messageType}/validate`);
     return response.data;
   } catch (error) {
     console.error('Error validating message:', error);
@@ -175,13 +172,10 @@ export const validateMessage = async (message, messageType, port = 3000) => {
   }
 };
 
-export const getBinaryMessage = async (message, messageType, port = 3000) => {
+export const getBinaryMessage = async (messageArgs, messageType, port = 3000) => {
   try {
     const apiClient = createApiClient(port);
-    const response = await apiClient.post(`/${message}/${messageType}/binary`, {
-      message,
-      messageType,
-    });
+    const response = await apiClient.get(`messages/${messageArgs}/${messageType}/binary`);
     return response.data;
   } catch (error) {
     console.error('Error getting binary message:', error);

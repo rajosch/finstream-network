@@ -2,9 +2,12 @@ const fs = require('fs');
 const path = require('path');
 const protobuf = require('protobufjs');
 
+const { ethers } = require('ethers');
+
 const db = require('../utils/database');
 const { buildMerkleTree, createProof, verifyProof } = require('../utils/merkleTree');
-const { orderMessages, createMessage } = require('../utils/message');
+const { xmlToBin } = require('../utils/xmlProcessor');
+const { orderMessages, createMessage, createPain00100112, createFxtr01400105, createPacs00200114 } = require('../utils/message');
 
 exports.getAllMessages = () => {
   return new Promise((resolve, reject) => {
@@ -215,5 +218,31 @@ exports.getMessagesForEntity = async (entityName) => {
 
   } catch (error) {
     throw new Error(error.message);
+  }
+};
+
+exports.getBinaryMessage = async (messageArgs, messageType) => {
+  try {
+    const protoPath = path.join(__dirname, '../../../../../files/protobuf', `${messageType}.proto`);
+    const root = protobuf.loadSync(protoPath);
+
+    let message = null;
+
+    if (messageType.localeCompare('pain.001.001.12') === 0) {
+      message = createPain00100112(messageArgs);
+    } else if (messageType.localeCompare('fxtr.014.001.05') === 0) {
+      message = createFxtr01400105(messageArgs);
+    } else if (messageType.localeCompare('pacs.002.001.14') === 0) {
+      message = createPacs00200114(messageArgs);
+    }
+
+    const buffer = await xmlToBin(message, root, 'Document');
+
+    const messageHash = ethers.keccak256(buffer);
+
+    return {binary: buffer.toString('hex'), hash: messageHash};
+  } catch (error) {
+    console.error('Error converting message to binary:', error);
+    throw new Error('Failed to convert message to binary');
   }
 };

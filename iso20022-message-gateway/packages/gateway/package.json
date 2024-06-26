@@ -15,7 +15,6 @@
     "express": "^4.19.2",
     "protobufjs": "^7.3.0",
     "sqlite3": "^5.1.7",
-    "xml-js": "^1.6.11",
     "xmlbuilder": "^15.1.1"
   },
   "devDependencies": {

@@ -49,7 +49,7 @@
       </div>
     </section>
 
-    <!-- <section>
+    <section>
       <div class="bg-gray-800 text-white py-4">
         <div class="container mx-auto flex justify-between items-center px-4">
           <h1 class="text-2xl font-bold">
@@ -62,7 +62,7 @@
           <MessageValidation />
         </div>
       </div>
-    </section> -->
+    </section>
         
     <section id="poc">
       <div class="bg-gray-800 text-white py-4">
