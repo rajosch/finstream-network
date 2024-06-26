@@ -60,23 +60,66 @@
     >
       Add Message
     </button>
-    <section class="text-gray-700 p-5">
-      <div>
-        Current Merkle tree root: <span class="font-semibold"> {{ root }}</span>
+    <section class="text-gray-700">
+      <div class="my-5">
+        Current selected Merkle tree root: <span class="font-semibold">{{ selectedRoot }}</span>
+      </div>
+      <div
+        v-if="roots && roots.length"
+        class="overflow-auto h-full"
+      >
+        <table class="min-w-full bg-white border border-gray-300">
+          <thead class="sticky top-0 bg-gray-800 text-white">
+            <tr>
+              <th
+                v-for="(value, key) in roots[0]"
+                :key="key"
+                class="py-2 px-4 border-b border-gray-200 whitespace-nowrap"
+              >
+                {{ key }}
+              </th>
+              <th />
+            </tr>
+          </thead>
+          <tbody class="text-gray-500 cursor-default">
+            <tr
+              v-for="(item, index) in roots"
+              :key="index"
+              @click="selectRoot(index)"
+            >
+              <td
+                v-for="(value, key) in item"
+                :key="key"
+                class="py-2 px-4 border-b border-gray-200 text-center max-w-xs truncate hover:bg-gray-200"
+                :title="value"
+              >
+                {{ value }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </section>
     <ModalView
       v-if="isModalOpen"
       @close="isModalOpen = false"
     >
-      <MessageData v-if="typeof selectedValue === 'object'" :initial-json="selectedValue" @message-update="handleMessageUpdate" />
-      <p v-else class="text-gray-500">{{ selectedValue }}</p>
+      <MessageData
+        v-if="typeof selectedValue === 'object'"
+        :initial-json="selectedValue"
+        @message-update="handleMessageUpdate"
+      />
+      <p
+        v-else
+        class="text-gray-500"
+      >
+        {{ selectedValue }}
+      </p>
     </ModalView>
   </div>
 </template>
 
 <script>
-  import { ethers } from 'ethers';
   export default {
     data() {
       return {
@@ -152,64 +195,26 @@
             },
             binData: null,
             messageHash: null,
-            ticketId: '0',
+            ticketId: 999,
             parent: null,
             status: 'unverified'
           }
         ],
-        root: 'root'
+        roots: [],
+        selectedRoot: null,
+        expanded: false
       }
     },
     async mounted() {
-      const {binary, hash} = await getBinaryMessage(this.pain00100112Args(this.messages[0].message.Document.CstmrCdtTrfInitn), 'pain.001.001.12', 3000);
+      const {binary, hash} = await getBinaryMessage(pain00100112(this.messages[0].message.Document.CstmrCdtTrfInitn), 'pain.001.001.12', 3000);
       this.messages[0].binData = binary;
       this.messages[0].messageHash = hash;
+
+      this.addMerkleTreeRoot(this.messages);
     },
     methods: {
-      pain00100112Args(obj) {
-        return {
-          msgId: obj.GrpHdr.MsgId,
-          creDtTm: obj.GrpHdr.CreDtTm,
-          nbOfTxs: obj.GrpHdr.NbOfTxs,
-          ctrlSum: obj.GrpHdr.CtrlSum,
-          initgPtyNm: obj.GrpHdr.InitgPty.Nm,
-          pmtInfId: obj.PmtInf.PmtInfId,
-          pmtMtd: obj.PmtInf.PmtMtd,
-          pmtTpInfSvcLvlCd: obj.PmtInf.PmtTpInf.SvcLvl.Cd,
-          reqdExctnDt: obj.PmtInf.ReqdExctnDt.Dt,
-          dbtrNm: obj.PmtInf.Dbtr.Nm,
-          dbtrAcctIBAN: obj.PmtInf.DbtrAcct.Id.IBAN,
-          dbtrAgtBICFI: obj.PmtInf.DbtrAgt.FinInstnId.BICFI,
-          endToEndId: obj.PmtInf.CdtTrfTxInf.PmtId.EndToEndId,
-          instdAmtCcy: obj.PmtInf.CdtTrfTxInf.Amt.InstdAmt['@Ccy'],
-          instdAmt: obj.PmtInf.CdtTrfTxInf.Amt.InstdAmt['#text'],
-          cdtrAgtBICFI: obj.PmtInf.CdtTrfTxInf.CdtrAgt.FinInstnId.BICFI,
-          cdtrAcctIBAN: obj.PmtInf.CdtTrfTxInf.CdtrAcct.Id.IBAN
-        };
-      },
-      fxtr01400105(obj) {
-        return {
-          tradDt: obj.TradInf.TradDt, 
-          orgtrRef: obj.TradInf.OrgtrRef,
-          tradgSdIdAnyBIC: obj.TradgSdId.SubmitgPty.AnyBIC.AnyBIC,
-          ctrPtySdIdAnyBIC: obj.TradgSdId.SubmitgPty.AnyBIC.AnyBIC,
-          tradgSdBuyAmtIdr: obj.TradAmts.TradgSdBuyAmt.DgtlTknAmt.Idr,
-          tradgSdBuyAmtUnit: obj.TradAmts.TradgSdBuyAmt.DgtlTknAmt.Unit,
-          tradgSdSellAmtIdr: obj.TradAmts.TradgSdSellAmt.DgtlTknAmt.Idr,
-          tradgSdSellAmtUnit: obj.TradAmts.TradgSdSellAmt.DgtlTknAmt.Unit,
-          sttlmDt: obj.TradAmts.SttlmDt,
-          xchgRate: obj.AgrdRate.XchgRate
-        };
-      },
-      pacs00200114(obj) {
-        return {
-          msgId: obj.GrpHdr.MsgId,
-          creDtTm: obj.GrpHdr.CreDtTm,
-          orgnlMsgId: obj.OrgnlGrpInfAndSts.OrgnlMsgId,
-          orgnlMsgNmId: obj.OrgnlGrpInfAndSts.OrgnlMsgNmId,
-          orgnlEndToEndId: obj.TxInfAndSts.OrgnlEndToEndId,
-          txSts: obj.TxInfAndSts.TxSts
-        }
+      selectRoot(index) {
+        this.selectedRoot = this.roots[index].root;
       },
       truncatedValue(value) {
         return value && value.length > 20 ? value.substring(0, 20) + '...' : value;
@@ -218,6 +223,12 @@
         this.selectedValue = value;
         this.isModalOpen = true;
         this.selectedMessage = index;
+      },
+      addMerkleTreeRoot(messages) {
+        const messageHashes = messages.map(msg => [msg.messageHash]);
+        const tree = buildMerkleTree(messageHashes, ['string']);
+        this.roots.push({ root: tree.root, index: this.roots.length + 1 });
+        this.selectedRoot = tree.root;
       },
       async addMessage(id) {
         if(id === 1) {
@@ -269,14 +280,16 @@
               },
               binData: null,
               messageHash: null,
-              ticketId: '0',
+              ticketId: 999,
               parent: 1,
               status: 'unverified'
             }
           )
-          const {binary, hash} = await getBinaryMessage(this.fxtr01400105(this.messages[1].message.Document.FXTradInstr), 'fxtr.014.001.05', 3000);
+          const {binary, hash} = await getBinaryMessage(fxtr01400105(this.messages[1].message.Document.FXTradInstr), 'fxtr.014.001.05', 3000);
           this.messages[1].binData = binary;
           this.messages[1].messageHash = hash;
+
+          this.addMerkleTreeRoot(this.messages);
         }else if(id === 2) {
           this.messages.push(
             {
@@ -347,14 +360,16 @@
               },
               binData: null,
               messageHash: null,
-              ticketId: '0',
+              ticketId: 999,
               parent: 2,
               status: 'unverified'
             }
           )
-          const {binary, hash} = await getBinaryMessage(this.pain00100112Args(this.messages[2].message.Document.CstmrCdtTrfInitn), 'pain.001.001.12', 3000);
+          const {binary, hash} = await getBinaryMessage(pain00100112(this.messages[2].message.Document.CstmrCdtTrfInitn), 'pain.001.001.12', 3000);
           this.messages[2].binData = binary;
           this.messages[2].messageHash = hash;
+
+          this.addMerkleTreeRoot(this.messages);
         }else if (id === 3) {
           this.messages.push(
             {
@@ -380,35 +395,38 @@
               },
               binData: null,
               messageHash: null,
-              ticketId: '0',
+              ticketId: 999,
               parent: 3,
               status: 'unverified'
             }
           )
-          const {binary, hash} = await getBinaryMessage(this.pacs00200114(this.messages[3].message.Document.FIToFIPmtStsRpt), 'pacs.002.001.14', 3000);
+          const {binary, hash} = await getBinaryMessage(pacs00200114(this.messages[3].message.Document.FIToFIPmtStsRpt), 'pacs.002.001.14', 3000);
           this.messages[3].binData = binary;
           this.messages[3].messageHash = hash;
+
+          this.addMerkleTreeRoot(this.messages);
         }
       },
       async handleMessageUpdate(jsonData) {
         this.isModalOpen = false;
         this.messages[this.selectedMessage].message = jsonData;
-        console.log(jsonData)
         if(this.selectedMessage === 0 || this.selectedMessage === 2) {
-          console.log(this.pain00100112Args(jsonData.Document.CstmrCdtTrfInitn));
-          const {binary, hash} = await getBinaryMessage(this.pain00100112Args(jsonData.Document.CstmrCdtTrfInitn), 'pain.001.001.12', 3000);
+          const {binary, hash} = await getBinaryMessage(pain00100112(jsonData.Document.CstmrCdtTrfInitn), 'pain.001.001.12', 3000);
           this.messages[this.selectedMessage].binData = binary;
           this.messages[this.selectedMessage].messageHash = hash;
+          this.addMerkleTreeRoot(this.messages);
         }else if (this.selectedMessage === 1){
-          const {binary, hash} = await getBinaryMessage(this.fxtr01400105(jsonData.Document.FXTradInstr), 'fxtr.014.001.05', 3000);
+          const {binary, hash} = await getBinaryMessage(fxtr01400105(jsonData.Document.FXTradInstr), 'fxtr.014.001.05', 3000);
           
           this.messages[this.selectedMessage].binData = binary;
           this.messages[this.selectedMessage].messageHash = hash;
+          this.addMerkleTreeRoot(this.messages);
         }else if(this.selectedMessage === 3) {
-          const {binary, hash} = await getBinaryMessage(this.pacs00200114(jsonData.Document.FIToFIPmtStsRpt), 'pacs.002.001.14', 3000);
+          const {binary, hash} = await getBinaryMessage(pacs00200114(jsonData.Document.FIToFIPmtStsRpt), 'pacs.002.001.14', 3000);
           
           this.messages[this.selectedMessage].binData = binary;
           this.messages[this.selectedMessage].messageHash = hash;
+          this.addMerkleTreeRoot(this.messages);
         }
       }
     }

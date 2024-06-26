@@ -7,16 +7,20 @@
       >
         <span v-if="typeof value === 'object'">
           <span class="font-semibold">{{ key }}</span>
-          <DisplayJson :json-object="value" class="pl-2" @update-json="updateJson(key, $event)" />
+          <DisplayJson
+            :json-object="value"
+            class="pl-2"
+            @update-json="updateJson(key, $event)"
+          />
         </span>
         <span v-else>
           <span class="font-semibold mr-1">{{ key }}:</span>
           <input
             v-model="jsonObject[key]"
-            @input="emitUpdate"
             type="text"
             class="border rounded px-1"
-          />
+            @input="emitUpdate"
+          >
         </span>
       </li>
     </ul>

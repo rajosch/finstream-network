@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { Buffer } from 'buffer';
 
 const createApiClient = (port = 3000) => {
   return axios.create({
@@ -130,22 +129,6 @@ export const verifyMessage = async (ticketId, messageHash, port = 3000) => {
     return response.data;
   } catch (error) {
     console.error('Error updating transaction status:', error);
-    throw error;
-  }
-};
-
-export const buildMerkleTree = async (ticketId, port = 3000) => {
-  try {
-    const apiClient = createApiClient(port);
-    const response = await apiClient.get(`/messages/${ticketId}/build-merkle-tree`);
-    const tree = response.data.data.tree;
-
-    const buffer = Buffer.from(tree[0]);
-    const root = buffer.toString('hex');
-
-    return root;
-  } catch (error) {
-    console.error('Error building merkle tree:', error);
     throw error;
   }
 };

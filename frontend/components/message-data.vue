@@ -1,7 +1,10 @@
 <template>
   <div class="p-4 text-gray-500">
     <div>
-      <DisplayJson :json-object="jsonData" @update-json="handleJsonUpdate" />
+      <DisplayJson
+        :json-object="jsonData"
+        @update-json="handleJsonUpdate"
+      />
     </div>
     <div class="w-full flex justify-center mt-8">
       <button

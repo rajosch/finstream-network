@@ -46,8 +46,10 @@ exports.buildMerkleTree = async (req, res) => {
   try {
     const ticketId = req.params.ticketId;
     const merkleTree = await messageService.buildMerkleTree(ticketId);
+    console.log(merkleTree)
     res.send({ data: merkleTree, message: 'Merkle tree built.' });
   } catch (error) {
+    console.error('Error creating message:', error);
     res.status(500).send(error.message);
   }
 };
