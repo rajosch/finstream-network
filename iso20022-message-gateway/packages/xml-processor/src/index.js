@@ -46,7 +46,6 @@ function parseLibxmljsErrors(validationErrors) {
     }));
 }
 
-
 function xmlToBin(data, root, msgType) {
     return new Promise((resolve, reject) => {
         const RootElement = root.lookupType(msgType);

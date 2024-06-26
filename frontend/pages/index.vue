@@ -48,6 +48,21 @@
         </div>
       </div>
     </section>
+
+    <!-- <section>
+      <div class="bg-gray-800 text-white py-4">
+        <div class="container mx-auto flex justify-between items-center px-4">
+          <h1 class="text-2xl font-bold">
+            Message Storage & Verification
+          </h1>
+        </div>
+      </div>
+      <div class="bg-gray-300 h-[60vh]">
+        <div class="w-full">
+          <MessageValidation />
+        </div>
+      </div>
+    </section> -->
         
     <section id="poc">
       <div class="bg-gray-800 text-white py-4">

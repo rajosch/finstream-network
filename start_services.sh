@@ -24,11 +24,11 @@ start_nuxt3_app() {
   echo "Started Nuxt3 app in $folder with command: $command"
 }
 
-# Function to run the setup script in a new tab
+# Function to run the setup script in a new tab and close the tab when done
 run_setup_script() {
   local folder=$1
   local command=$2
-  gnome-terminal --tab -- bash -c "cd $folder && $command; exec bash"
+  gnome-terminal --tab -- bash -c "cd $folder && $command; exec bash -c 'exit'"
   echo "Ran setup script in $folder with command: $command"
 }
 
@@ -43,10 +43,14 @@ start_blockchain_node "smart-contracts/" "npx hardhat node"
 
 # Wait for the blockchain node to fully start
 echo "Waiting for the blockchain node to start..."
-sleep 10  
+sleep 15
 
 # Run the setup script
 run_setup_script "smart-contracts/" "npx hardhat run scripts/setupFinstream.js --network localhost"
+
+# Wait for the blockchain node to fully start
+echo "Waiting for the Finstream contracts to be deployed..."
+sleep 10  
 
 # Start the Nuxt3 app in dev mode
 start_nuxt3_app "frontend/" "pnpm dev"

@@ -1,6 +1,5 @@
-// const { encryptFile } = require("../../multi-party-encrypter");
 const { ethers } = require('ethers')
-const { validateXML, xmlToBin } = require("../../xml-processor");
+const { validateXML, xmlToBin } = require('../../../xml-processor/src/index');
 const xmlbuilder = require('xmlbuilder');
 
 async function createMessage(messageType, messageArgs, ticketId, xsdContent, root, parent) {

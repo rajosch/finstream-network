@@ -13,20 +13,10 @@
 * [X] Add functions to update database info
 * [X] Add `sent and recieved transactions (including status)` for customer interface
 * [X] fix selectedTransaction bug in the mock-bank component
+* [ ] Fix that the tree returned from the server does not have a root
 * [ ] Put explanations in the about section (from readme info TBD)
 * [ ] Make `explanation video` and add it to the `About` section
 * [ ] Explain that encryption is taken out for PoC but would be possible (multi-party-encryption)
-
-### Blockchain
-
-* [X] Spin up local node with Hardhat
-* [X] Implement `Chainlink Price Feed`for Ethereum EUR/USD
-* [X] Make sure EURC and USDC mock coins are deployed to local node and function
-* [X] Adjust treasury
-
-  * [X] For PoC the banks have a lot of liquidity
-  * [X] add getExchagenRate call
-  * [X] add transferFunds
 
 ### Backend / Gateway
 
@@ -39,7 +29,3 @@
 * [X] Make sure the XSD content is handled on the server side
 * [X] split up gateway and bank databases for clearer structure
 * [ ] Check against on-chain root to verify messages
-
-## Future Work
-
-TODO

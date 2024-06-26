@@ -1,4 +1,4 @@
-const { createMessage, orderMessages } = require('../src');
+const { createMessage, orderMessages } = require('../src/utils/message');
 const { validateXML, xmlToBin } = require('../../xml-processor');
 const protobuf = require('protobufjs');
 const path = require('path');

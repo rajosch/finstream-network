@@ -61,13 +61,13 @@
           </h3>
           <input
             v-model.number="transferAmount"
-            @blur="formatTransferAmount"
             type="number"
             :placeholder="`Amount in ${bank.currency}`"
             class="w-full p-2 border rounded mb-2 text-gray-500"
             min="0"
             step="0.01"
             pattern="^\d*(\.\d{0,2})?$"
+            @blur="formatTransferAmount"
           >
           <label
             for="recipient-select"
@@ -131,10 +131,29 @@
                     src="/img/icons/failed.png"
                     class="h-4 w-4"
                   > 
-                  <span v-else class="flex items-center justify-center">
-                    <svg class="animate-spin h-4 w-4 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <span
+                    v-else
+                    class="flex items-center justify-center"
+                  >
+                    <svg
+                      class="animate-spin h-4 w-4 text-blue-500"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        class="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        stroke-width="4"
+                      />
+                      <path
+                        class="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
                     </svg>
                   </span>
                 </div>
@@ -162,10 +181,29 @@
                     src="/img/icons/failed.png"
                     class="h-4 w-4"
                   > 
-                  <span v-else class="flex items-center justify-center">
-                    <svg class="animate-spin h-4 w-4 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <span
+                    v-else
+                    class="flex items-center justify-center"
+                  >
+                    <svg
+                      class="animate-spin h-4 w-4 text-blue-500"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        class="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        stroke-width="4"
+                      />
+                      <path
+                        class="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
                     </svg>
                   </span>
                 </div>
@@ -351,13 +389,9 @@ export default {
       // Update tables
       await this.queryData();
 
-      await this.sleep(2000);
-
-      /**
-       * TODO
-       * - Mint transaction ticket
-       */
-      const ticketId = Date.now().toString(); // await createTicket(...);
+      // TODO
+      // const ticketId = await mintTicket(debtor.name);
+      const ticketId = Date.now().toString(); 
 
       // Create time stamp
       const date = new Date();
@@ -408,13 +442,12 @@ export default {
         alert('Could not create message: pain.001.001.12');
       }
 
-      /**
-       * TODO
-       * - setup merkle root
-       * - update merkle root on chain
-      */
+      // TODO
+      // let root = await buildMerkleTree(ticketId);
 
+      // console.log('Root: ', root)
 
+      // await updateMerkleRoot(debtor.name, ticketId, root); 
 
       let parent = message.messageId;
 
@@ -424,9 +457,9 @@ export default {
       // Update tables
       await this.queryData();
 
-      await this.sleep(2000);
-
-      const rateNumber = 1.07; // TODO await getExchangeRate(...)
+      // TODO
+      // const rateNumber = await getExchangeRate();
+      const rateNumber = 1.07; 
       const exchangeRate = debtor.currency === '$' ? (1 / rateNumber) : rateNumber; 
 
       const amountReceived = this.transferAmount * exchangeRate;
@@ -450,11 +483,9 @@ export default {
         alert('Could not create message: fxtr.014.001.05');
       }
 
-      /**
-       * TODO
-       * - update merkle root on-chain
-       */
-
+      // TODO
+      // root = await buildMerkleTree(ticketId);
+      // await updateMerkleRoot(debtor.name, ticketId, root); 
 
       parent = message.messageId;
       
@@ -463,8 +494,6 @@ export default {
 
       // Update tables
       await this.queryData();
-
-      await this.sleep(2000);
 
       messageArgs = {
         msgId: 'BU-FN-001', // This is just an example value for the PoC
@@ -491,10 +520,10 @@ export default {
       if(!message) {
         alert('Could not create message: pain.001.001.12');
       }
-      /**
-        * TODO 
-        * - update merkle root
-      */
+
+      // TODO
+      // root = await buildMerkleTree(ticketId);
+      // await updateMerkleRoot(debtor.name, ticketId, root); 
 
       parent = message.messageId;
 
@@ -530,18 +559,16 @@ export default {
         alert('Could not create message: pain.001.001.12');
       }
 
-       /**
-        * TODO
-        * - update merkle root
-        */
+      // TODO
+      // root = await buildMerkleTree(ticketId);
+      // await updateMerkleRoot(debtor.name, ticketId, root); 
 
       parent = message.messageId;
 
-      /**
-       * TODO
-       * - transfer funds on chain
-       * - Create fith message
-       */
+      // TODO
+      // const proof = getProof(ticketId, message.messageHash);
+
+      // await transferFunds(debtor, creditor, debtor.currency, amountReceived, ticketId, message.messageHash, proof);
 
       messageArgs = {
         msgId: 'BANKUS33-20240504-124500-001', // This is just an example value for the PoC
@@ -557,12 +584,10 @@ export default {
       if(!message) {
         alert('Could not create message: pacs.002.001.14');
       }
-      /**
-        * TODO 
-        * - update merkle root
-      */
 
-      await this.sleep(2000);
+      // TODO
+      // root = await buildMerkleTree(ticketId);
+      // await updateMerkleRoot(debtor.name, ticketId, root); 
 
       const newCreditorBalance = creditor.balance + amountReceived;
       await updateCustomerBalance(creditor.id, newCreditorBalance, 3001);
@@ -574,9 +599,6 @@ export default {
       this.transferRecipient = '';
 
       await this.queryData();
-    },
-    async sleep(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
     }
   }
 };
