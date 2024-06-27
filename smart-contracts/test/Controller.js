@@ -88,10 +88,14 @@ describe("Controller", function () {
 
             await controllerContract.initiateTicket();
             const ticketId = 0;
-            const newMerkleRoot = ethers.keccak256(ethers.toUtf8Bytes("newMerkleRoot"));
 
-            await controllerContract.updateMerkleRoot(ticketId, newMerkleRoot);
-            expect(await msgTicket.merkleRoots(ticketId)).to.equal(newMerkleRoot);
+            const values = [['message']];
+            const leafEncoding = ['string'];
+            const tree = buildMerkleTree(values, leafEncoding);
+            const newLeaf = calculateLeafHash(tree, ['message']);
+
+            await controllerContract.updateMerkleRoot(ticketId, [], newLeaf);
+            expect(await msgTicket.merkleRoots(ticketId)).to.equal(tree.root);
         });
 
         it("Should revert if the sender is not the owner of the ticket", async function () {
@@ -99,10 +103,14 @@ describe("Controller", function () {
 
             await controllerContract.initiateTicket();
             const ticketId = 0;
-            const newMerkleRoot = ethers.keccak256(ethers.toUtf8Bytes("newMerkleRoot"));
+            
+            const values = [['message']];
+            const leafEncoding = ['string'];
+            const tree = buildMerkleTree(values, leafEncoding);
+            const newLeaf = calculateLeafHash(tree, ['message']);
 
             await expect(
-                controllerContract.connect(user2).updateMerkleRoot(ticketId, newMerkleRoot)
+                controllerContract.connect(user2).updateMerkleRoot(ticketId, [], newLeaf)
             ).to.be.revertedWith("Sender is not the owner of the ticket");
         });
     });
@@ -131,7 +139,7 @@ describe("Controller", function () {
             const values = [['message']];
             const leafEncoding = ['string'];
             const tree = buildMerkleTree(values, leafEncoding);
-            await controllerContract.updateMerkleRoot(ticketId, tree.root);
+            await controllerContract.updateMerkleRoot(ticketId, [], tree.root);
             const proof = createProof(tree, ['message']);
             const leaf = calculateLeafHash(tree, ['message'])
 
@@ -175,7 +183,9 @@ describe("Controller", function () {
             const values = [['message']];
             const leafEncoding = ['string'];
             const tree = buildMerkleTree(values, leafEncoding);
-            await controllerContract.updateMerkleRoot(ticketId, tree.root);
+            const newLeaf = calculateLeafHash(tree, ['message']);
+
+            await controllerContract.updateMerkleRoot(ticketId, [], newLeaf);
             const proof = createProof(tree, ['message']);
             const leaf = calculateLeafHash(tree, ['message'])
 

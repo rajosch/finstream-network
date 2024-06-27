@@ -1,14 +1,14 @@
 const { loadFixture } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 const { expect } = require("chai");
 
-const { buildMerkleTree, createProof, calculateLeafHash } = require('../../iso20022-message-gateway/packages/merkle-tree-validator/src/index');
+const { StandardMerkleTree, buildMerkleTree, createProof, calculateLeafHash } = require('../../iso20022-message-gateway/packages/merkle-tree-validator/src/index');
 
 describe("MsgTicket", function () {
   async function deployMsgTicketFixture() {
     const [owner, otherAccount] = await ethers.getSigners();
 
     const MsgTicket = await ethers.getContractFactory("MsgTicket");
-    const msgTicket = await MsgTicket.deploy(owner);
+    const msgTicket = await MsgTicket.deploy(owner.address);
 
     return { msgTicket, owner, otherAccount };
   }
@@ -44,66 +44,104 @@ describe("MsgTicket", function () {
   });
 
   describe("Merkle Root Management", function () {
+    it("Should allow the owner to set the Merkle root", async function () {
+      const { msgTicket, otherAccount } = await loadFixture(deployMsgTicketFixture);
+      const tokenId = 0;
+
+      const values = [['message']];
+      const leafEncoding = ['string'];
+      const tree = buildMerkleTree(values, leafEncoding);
+      const newLeaf = calculateLeafHash(tree, ['message']);
+
+      await msgTicket.mintTicket(otherAccount.address);
+      await msgTicket.updateMerkleRoot(tokenId, [], newLeaf);
+
+      expect(await msgTicket.merkleRoots(tokenId)).to.equal(tree.root);
+    });
+
     it("Should allow the owner to update the Merkle root", async function () {
       const { msgTicket, otherAccount } = await loadFixture(deployMsgTicketFixture);
       const tokenId = 0;
-      const merkleRoot = ethers.keccak256(ethers.toUtf8Bytes("merkleRoot"));
+
+      const values = [['message']];
+      const leafEncoding = ['string'];
+      const tree = buildMerkleTree(values, leafEncoding);
+      const firstLeaf = calculateLeafHash(tree, ['message']);
 
       await msgTicket.mintTicket(otherAccount.address);
-      await msgTicket.updateMerkleRoot(tokenId, merkleRoot);
+      await msgTicket.updateMerkleRoot(tokenId, [], firstLeaf);
 
-      expect(await msgTicket.verifyMessage(tokenId, ethers.keccak256(ethers.toUtf8Bytes("message")), [])).to.be.false;
+      const newLeaf = calculateLeafHash(tree, ['newMessage']);
+      const previousHashes = tree.tree; 
+
+      await msgTicket.updateMerkleRoot(tokenId, previousHashes, newLeaf);
+
+      const updatedValues = [...values, ['newMessage']];
+      const updatedTree = buildMerkleTree(updatedValues, leafEncoding);
+
+      expect(await msgTicket.merkleRoots(tokenId)).to.equal(updatedTree.root);
     });
 
     it("Should emit MerkleRootUpdated event on Merkle root update", async function () {
       const { msgTicket, otherAccount } = await loadFixture(deployMsgTicketFixture);
       const tokenId = 0;
-      const merkleRoot = ethers.keccak256(ethers.toUtf8Bytes("merkleRoot"));
 
       await msgTicket.mintTicket(otherAccount.address);
-      await expect(msgTicket.updateMerkleRoot(tokenId, merkleRoot))
+
+      const values = [['message']];
+      const leafEncoding = ['string'];
+      const tree = buildMerkleTree(values, leafEncoding);
+      const newLeaf = calculateLeafHash(tree, ['message']);
+
+      await expect(msgTicket.updateMerkleRoot(tokenId, [], newLeaf))
         .to.emit(msgTicket, "MerkleRootUpdated")
-        .withArgs(tokenId, merkleRoot, await ethers.provider.getBlockNumber() + 1);
+        .withArgs(tokenId, newLeaf, await ethers.provider.getBlockNumber() + 1);
+
+
+      expect(await msgTicket.merkleRoots(tokenId)).to.equal(newLeaf);
+      expect(await msgTicket.merkleRoots(tokenId)).to.equal(tree.root);
+      
     });
   });
 
   describe("Verification", function () {
-    it("Should verify a correct leafe against the Merkle root", async function () {
+    it("Should verify a correct leaf against the Merkle root", async function () {
       const { msgTicket, otherAccount } = await loadFixture(deployMsgTicketFixture);
       const tokenId = 0;
 
       const values = [['message']];
       const leafEncoding = ['string'];
-
       const tree = buildMerkleTree(values, leafEncoding);
-
       const proof = createProof(tree, ['message']);
+      const leaf = calculateLeafHash(tree, ['message']);
 
-      const leaf = calculateLeafHash(tree, ['message'])
-
-      await msgTicket.mintTicket(otherAccount);
-      await msgTicket.updateMerkleRoot(tokenId, tree.root);
+      await msgTicket.mintTicket(otherAccount.address);
+      await msgTicket.updateMerkleRoot(tokenId, tree.tree, leaf);
 
       expect(await msgTicket.verifyMessage(tokenId, leaf, proof)).to.be.true;
     });
 
-    it("Should not verify a false leafe against the Merkle root", async function () {
+    it("Should not verify a false leaf against the Merkle root", async function () {
       const { msgTicket, otherAccount } = await loadFixture(deployMsgTicketFixture);
       const tokenId = 0;
-
-      const values = [['message']];
       const leafEncoding = ['string'];
 
+
+      const values = [['message']];
       const tree = buildMerkleTree(values, leafEncoding);
-
       const proof = createProof(tree, ['message']);
+      const leaf = calculateLeafHash(tree, ['message']);
 
-      const leaf = ethers.keccak256(ethers.toUtf8Bytes("evil"));
+      await msgTicket.mintTicket(otherAccount.address);
+      await msgTicket.updateMerkleRoot(tokenId, tree.tree, leaf);
 
-      await msgTicket.mintTicket(otherAccount);
-      await msgTicket.updateMerkleRoot(tokenId, tree.root);
+      const updatedValues = [...values, ['evil']];
+      const updatedTree = buildMerkleTree(updatedValues, leafEncoding);
+      const newLeaf = calculateLeafHash(updatedTree, ['evil']);
+      const newProof = createProof(updatedTree, ['evil']);
 
-      expect(await msgTicket.verifyMessage(tokenId, leaf, proof)).to.be.false;
+      expect(await msgTicket.verifyMessage(tokenId, newLeaf, proof)).to.be.false;
+      expect(await msgTicket.verifyMessage(tokenId, newLeaf, newProof)).to.be.false;
     });
   });
 });
