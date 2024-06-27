@@ -13,7 +13,8 @@
 * [X] Add functions to update database info
 * [X] Add `sent and recieved transactions (including status)` for customer interface
 * [X] fix selectedTransaction bug in the mock-bank component
-* [ ] Fix that the tree returned from the server does not have a root
+* [X] Fix that the tree returned from the server does not have a root
+* [ ] first message always reutrnes verified if checked alone since proof is empty; adjust testing to compoare root directly to hash?
 * [ ] Put explanations in the about section (from readme info TBD)
 * [ ] Make `explanation video` and add it to the `About` section
 * [ ] Explain that encryption is taken out for PoC but would be possible (multi-party-encryption)

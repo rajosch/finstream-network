@@ -40,7 +40,7 @@
               >
                 <button
                   class="border border-gray-400 p-1 rounded-md text-green-400 hover:border-gray-600 hover:text-green-600"
-                  @click.stop="console.log('start verification')"
+                  @click.stop="verify(messages[index].messageHash, index)"
                 >
                   Verifiy
                 </button>
@@ -61,8 +61,8 @@
       Add Message
     </button>
     <section class="text-gray-700">
-      <div class="my-5">
-        Current selected Merkle tree root: <span class="font-semibold">{{ selectedRoot }}</span>
+      <div v-if="selectedRoot" class="my-5">
+        Current on-chain Merkle tree root: <span class="font-semibold">{{ selectedRoot.root }}</span>
       </div>
       <div
         v-if="roots && roots.length"
@@ -213,8 +213,62 @@
       this.addMerkleTreeRoot(this.messages);
     },
     methods: {
+      verify(messageHash, index) {
+        const messageHashes = this.messages.slice(0, this.selectedRoot.index + 1).map(obj => [obj.messageHash]);
+        const leafEncoding = ['string'];
+
+        const merkleTree = buildMerkleTree(messageHashes, leafEncoding);
+        const rootHash = this.selectedRoot.root;
+
+        try {
+          // Check if the messageHash is the root itself
+          if (messageHash === rootHash) {
+            this.messages[index].status = 'verified';
+          } else {
+            const proof = createProof(merkleTree, [messageHash]);
+            const result = verifyProof(rootHash, leafEncoding, [messageHash], proof);
+
+            if (result) {
+              this.messages[index].status = 'verified';
+            } else {
+              this.messages[index].status = 'corrupted';
+            }
+          }
+        } catch (error) {
+          console.log('Error: ', error);
+          this.messages[index].status = 'unverified';
+        }
+      },
+      roughSizeOfObject(object) {
+        const objectList = [];
+        const stack = [object];
+        let bytes = 0;
+
+        while (stack.length) {
+          const value = stack.pop();
+
+          if (typeof value === 'boolean') {
+            bytes += 4;
+          } else if (typeof value === 'string') {
+            bytes += value.length * 2;
+          } else if (typeof value === 'number') {
+            bytes += 8;
+          } else if (typeof value === 'object' && value !== null && !objectList.includes(value)) {
+            objectList.push(value);
+
+            for (const key in value) {
+              if (Object.prototype.hasOwnProperty.call(value, key)) {
+                bytes += key.length * 2;
+                stack.push(value[key]);
+              }
+            }
+          }
+        }
+
+        return bytes;
+      },
       selectRoot(index) {
-        this.selectedRoot = this.roots[index].root;
+        this.selectedRoot = this.roots[index];
       },
       truncatedValue(value) {
         return value && value.length > 20 ? value.substring(0, 20) + '...' : value;
@@ -227,8 +281,8 @@
       addMerkleTreeRoot(messages) {
         const messageHashes = messages.map(msg => [msg.messageHash]);
         const tree = buildMerkleTree(messageHashes, ['string']);
-        this.roots.push({ root: tree.root, index: this.roots.length + 1 });
-        this.selectedRoot = tree.root;
+        this.roots.push({ root: tree.root, index: this.roots.length });
+        this.selectedRoot = { root: tree.root, index: this.roots.length-1 };
       },
       async addMessage(id) {
         if(id === 1) {
@@ -414,19 +468,16 @@
           const {binary, hash} = await getBinaryMessage(pain00100112(jsonData.Document.CstmrCdtTrfInitn), 'pain.001.001.12', 3000);
           this.messages[this.selectedMessage].binData = binary;
           this.messages[this.selectedMessage].messageHash = hash;
-          this.addMerkleTreeRoot(this.messages);
         }else if (this.selectedMessage === 1){
           const {binary, hash} = await getBinaryMessage(fxtr01400105(jsonData.Document.FXTradInstr), 'fxtr.014.001.05', 3000);
           
           this.messages[this.selectedMessage].binData = binary;
           this.messages[this.selectedMessage].messageHash = hash;
-          this.addMerkleTreeRoot(this.messages);
         }else if(this.selectedMessage === 3) {
           const {binary, hash} = await getBinaryMessage(pacs00200114(jsonData.Document.FIToFIPmtStsRpt), 'pacs.002.001.14', 3000);
           
           this.messages[this.selectedMessage].binData = binary;
           this.messages[this.selectedMessage].messageHash = hash;
-          this.addMerkleTreeRoot(this.messages);
         }
       }
     }

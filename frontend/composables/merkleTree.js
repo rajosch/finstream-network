@@ -16,7 +16,7 @@ export function buildMerkleTree(values, leafEncoding) {
  * @param {Array} leaf - The leaf value for which to create the proof.
  * @returns {Array} - The proof for the given leaf.
  */
-function createProof(tree, leaf) {
+export function createProof(tree, leaf) {
   return tree.getProof(leaf);
 }
 
@@ -28,7 +28,7 @@ function createProof(tree, leaf) {
  * @param {Array} proof - The proof for the given leaf.
  * @returns {Boolean} - True if the proof is valid, false otherwise.
  */
-function verifyProof(root, leafEncoding, leaf, proof) {
+export function verifyProof(root, leafEncoding, leaf, proof) {
   return StandardMerkleTree.verify(root, leafEncoding, leaf, proof);
 }
 
