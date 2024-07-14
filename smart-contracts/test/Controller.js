@@ -49,27 +49,27 @@ describe("Controller", function () {
 
     describe("Client Management", function () {
         it("Should allow the owner to add clients", async function () {
-            const { controllerContract, otherAccount, owner } = await loadFixture(deployControllerFixture);
-            await controllerContract.connect(owner).addClient(otherAccount.address);
+            const { controllerContract, otherAccount } = await loadFixture(deployControllerFixture);
+            await controllerContract.addClient(otherAccount.address);
             expect(await controllerContract.clients(otherAccount.address)).to.be.true;
         });
 
         it("Should allow the owner to remove clients", async function () {
-            const { controllerContract, user1, owner } = await loadFixture(deployControllerFixture);
-            await controllerContract.connect(owner).removeClient(user1.address);
+            const { controllerContract, user1 } = await loadFixture(deployControllerFixture);
+            await controllerContract.removeClient(user1.address);
             expect(await controllerContract.clients(user1.address)).to.be.false;
         });
 
         it("Should emit ClientAdded event when a client is added", async function () {
-            const { controllerContract, otherAccount, owner } = await loadFixture(deployControllerFixture);
-            await expect(controllerContract.connect(owner).addClient(otherAccount.address))
+            const { controllerContract, otherAccount } = await loadFixture(deployControllerFixture);
+            await expect(controllerContract.addClient(otherAccount.address))
                 .to.emit(controllerContract, "ClientAdded")
                 .withArgs(otherAccount.address);
         });
 
         it("Should emit ClientRemoved event when a client is removed", async function () {
-            const { controllerContract, user1, owner } = await loadFixture(deployControllerFixture);
-            await expect(controllerContract.connect(owner).removeClient(user1.address))
+            const { controllerContract, user1 } = await loadFixture(deployControllerFixture);
+            await expect(controllerContract.removeClient(user1.address))
                 .to.emit(controllerContract, "ClientRemoved")
                 .withArgs(user1.address);
         });
@@ -92,9 +92,8 @@ describe("Controller", function () {
             const values = [['message']];
             const leafEncoding = ['string'];
             const tree = buildMerkleTree(values, leafEncoding);
-            const newLeaf = calculateLeafHash(tree, ['message']);
 
-            await controllerContract.updateMerkleRoot(ticketId, [], newLeaf);
+            await controllerContract.updateMerkleRoot(ticketId, tree.root);
             expect(await msgTicket.merkleRoots(ticketId)).to.equal(tree.root);
         });
 
@@ -107,10 +106,9 @@ describe("Controller", function () {
             const values = [['message']];
             const leafEncoding = ['string'];
             const tree = buildMerkleTree(values, leafEncoding);
-            const newLeaf = calculateLeafHash(tree, ['message']);
 
             await expect(
-                controllerContract.connect(user2).updateMerkleRoot(ticketId, [], newLeaf)
+                controllerContract.connect(user2).updateMerkleRoot(ticketId, tree.root)
             ).to.be.revertedWith("Sender is not the owner of the ticket");
         });
     });
@@ -139,7 +137,7 @@ describe("Controller", function () {
             const values = [['message']];
             const leafEncoding = ['string'];
             const tree = buildMerkleTree(values, leafEncoding);
-            await controllerContract.updateMerkleRoot(ticketId, [], tree.root);
+            await controllerContract.updateMerkleRoot(ticketId, tree.root);
             const proof = createProof(tree, ['message']);
             const leaf = calculateLeafHash(tree, ['message'])
 
@@ -183,9 +181,8 @@ describe("Controller", function () {
             const values = [['message']];
             const leafEncoding = ['string'];
             const tree = buildMerkleTree(values, leafEncoding);
-            const newLeaf = calculateLeafHash(tree, ['message']);
 
-            await controllerContract.updateMerkleRoot(ticketId, [], newLeaf);
+            await controllerContract.updateMerkleRoot(ticketId, tree.root);
             const proof = createProof(tree, ['message']);
             const leaf = calculateLeafHash(tree, ['message'])
 

@@ -361,6 +361,9 @@ export default {
         alert('Transaction could not be executed because the amount or the recipient was not valid.');
       }
 
+      const hashes = [];
+      const leafEncoding = ['string'];
+
       // Get Bank customers
       const debtor = this.customer;
       const creditor = this.customers.find(obj => obj.name === this.transferRecipient);
@@ -389,9 +392,7 @@ export default {
       // Update tables
       await this.queryData();
 
-      // TODO
-      // const ticketId = await mintTicket(debtor.name);
-      const ticketId = Date.now().toString(); 
+      const ticketId = await mintTicket(this.bank.name);
 
       // Create time stamp
       const date = new Date();
@@ -442,12 +443,10 @@ export default {
         alert('Could not create message: pain.001.001.12');
       }
 
-      // TODO
-      // let root = await buildMerkleTree(ticketId);
+      hashes.push([message.messageHash]);
+      let tree = buildMerkleTree(hashes, leafEncoding);
 
-      // console.log('Root: ', root)
-
-      // await updateMerkleRoot(debtor.name, ticketId, root); 
+      await updateMerkleRoot(this.bank.name, ticketId, tree.root); 
 
       let parent = message.messageId;
 
@@ -457,9 +456,8 @@ export default {
       // Update tables
       await this.queryData();
 
-      // TODO
-      // const rateNumber = await getExchangeRate();
-      const rateNumber = 1.07; 
+      const rateNumber = await getExchangeRate();
+      // const rateNumber = 1.07;
       const exchangeRate = debtor.currency === '$' ? (1 / rateNumber) : rateNumber; 
 
       const amountReceived = this.transferAmount * exchangeRate;
@@ -483,9 +481,12 @@ export default {
         alert('Could not create message: fxtr.014.001.05');
       }
 
-      // TODO
-      // root = await buildMerkleTree(ticketId);
-      // await updateMerkleRoot(debtor.name, ticketId, root); 
+      
+      hashes.push([message.messageHash]);
+
+      tree = buildMerkleTree(hashes, leafEncoding);
+
+      await updateMerkleRoot(this.bank.name, ticketId, tree.root); 
 
       parent = message.messageId;
       
@@ -521,9 +522,10 @@ export default {
         alert('Could not create message: pain.001.001.12');
       }
 
-      // TODO
-      // root = await buildMerkleTree(ticketId);
-      // await updateMerkleRoot(debtor.name, ticketId, root); 
+      hashes.push([message.messageHash]);
+      tree = buildMerkleTree(hashes, leafEncoding); 
+
+      await updateMerkleRoot(this.bank.name, ticketId, tree.root); 
 
       parent = message.messageId;
 
@@ -559,16 +561,17 @@ export default {
         alert('Could not create message: pain.001.001.12');
       }
 
-      // TODO
-      // root = await buildMerkleTree(ticketId);
-      // await updateMerkleRoot(debtor.name, ticketId, root); 
+      hashes.push([message.messageHash]);
+      tree = buildMerkleTree(hashes, leafEncoding);
+
+      await updateMerkleRoot(this.bank.name, ticketId, tree.root); 
 
       parent = message.messageId;
 
-      // TODO
-      // const proof = getProof(ticketId, message.messageHash);
+      const proof = createProof(tree, [message.messageHash]);
+      const leaf = calculateLeafHash(tree, [message.messageHash])
 
-      // await transferFunds(debtor, creditor, debtor.currency, amountReceived, ticketId, message.messageHash, proof);
+      await transferFunds(debtor, this.bank.address, this.otherBank.address, amountReceived, ticketId, leaf, proof);
 
       messageArgs = {
         msgId: 'BANKUS33-20240504-124500-001', // This is just an example value for the PoC
@@ -585,9 +588,10 @@ export default {
         alert('Could not create message: pacs.002.001.14');
       }
 
-      // TODO
-      // root = await buildMerkleTree(ticketId);
-      // await updateMerkleRoot(debtor.name, ticketId, root); 
+      hashes.push([message.messageHash]);
+      tree = buildMerkleTree(hashes, leafEncoding);
+
+      await updateMerkleRoot(this.bank.name, ticketId, tree.root); 
 
       const newCreditorBalance = creditor.balance + amountReceived;
       await updateCustomerBalance(creditor.id, newCreditorBalance, 3001);

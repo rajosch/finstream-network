@@ -67,6 +67,6 @@ function validateTree(tree) {
  * @param {Array} leaf - The leaf value to verify.
  * @returns {String} - The hash of the leaf value.
  */
-function calculateLeafHash(tree, leaf) {
+export function calculateLeafHash(tree, leaf) {
     return tree.leafHash(leaf);
 }

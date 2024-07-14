@@ -38,14 +38,13 @@ As new financial messages are added to a ticket, the contract updates the Merkle
 2. **Efficient Verification**: Allows for efficient verification of message inclusion within a set using Merkle proofs. This process requires only a small subset of data, reducing the computational load and storage requirements.
 3. **Decentralized Storage**: Utilizes decentralized storage solutions, such as IPFS, to store the binary content of messages. The messages are stored encrypted to ensure confidentiality and security.
 4. **Immutable Audit Trail**: The design of the contract ensures an immutable audit trail by allowing only the addition of new messages. This guarantees that once a message is added, it remains part of the historical record, maintaining the integrity of the data set.
-5. **Soulbound Tokens**: The ERC721 tokens minted by the contract are soulbound, meaning they cannot be transferred. This ensures that the ownership and associated data remain with the original holder.
-6. **Event Logging**: The contract emits events when a new ticket is minted and when the Merkle root is updated. These events include the block number, providing a clear audit trail for these actions.
+5. **Event Logging**: The contract emits events when a new ticket is minted and when the Merkle root is updated. These events include the block number, providing a clear audit trail for these actions.
 
 ##### Usage and Verification
 
 - **Minting a New Ticket**: When a new ticket is minted, a unique ERC721 token is created, and an initial Merkle root is set.
 - **Adding Messages**: As new messages are added, the Merkle root is updated to reflect the changes. This ensures the data set grows while maintaining integrity.
-- **Verifying Messages**: To verify a message, the contract uses a Merkle proof to confirm that the message is part of the set. This is done by recomputing the root from the provided proof and comparing it to the stored Merkle root.
+- **Verifying Messages**: To verify a message, the contract uses a Merkle proof to confirm that the message is part of the set. This is done by recomputing the root from the provided proof and comparing it to the stored Merkle root. (!At the current implementation this could be circumvented by a malicious actor which updates the root with false information. This could be fixed by adding a test that the updated root in updateMerkleRoot is trustable.!)
 
 ##### Security Considerations
 
@@ -61,7 +60,7 @@ The `Treasury` smart contract provides robust and flexible functionality for han
 1. **Support for Multiple ERC-20 Tokens**: The Treasury contract supports multiple ERC-20 tokens, ensuring flexibility and scalability. Supported tokens are tracked using a mapping, allowing the contract owner to add or remove tokens as needed.
 2. **Liquidity Management**: The contract facilitates the addition and removal of liquidity for supported tokens. This ensures that the contract maintains adequate reserves for token transfers and exchanges.
 3. **Secure Token Transfers**: Tokens can be securely transferred from one account to another.
-4. **Token Exchange Using Chainlink's Price Feed**: The Treasury contract leverages Chainlink price feeds to get the latest exchange rates for token pairs. This ensures that token exchanges are executed at accurate and fair market rates. **NOTE:** *Since there is no EUR/USD price feed on the Fuji testnet, he LINK / AVAX price feed will act as a stand-in to obtain a conversion rate. Also, to further simplify things, the conversion in both directions will be handled the same. So 1USD == 0.9€ & 1€ == 0.9USD in this PoC.*
+4. **Token Exchange Using Chainlink's Price Feed**: The Treasury contract leverages Chainlink price feeds to get the latest exchange rates for token pairs. This ensures that token exchanges are executed at accurate and fair market rates.
 
 ##### Security Considerations
 

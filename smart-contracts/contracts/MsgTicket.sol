@@ -30,7 +30,9 @@ contract MsgTicket is ERC721, Ownable {
      */
     event MerkleRootUpdated(uint256 indexed tokenId, bytes32 indexed merkleRoot, uint256 blockNumber);
 
-    constructor(address initialOwner) ERC721("MsgTicket", "MTKT") Ownable(initialOwner) {}
+    constructor(address initialOwner) ERC721("MsgTicket", "MTKT") Ownable(initialOwner) {
+        _tokenIdCounter = 0;
+    }
 
     /**
      * @dev Function to mint a new MsgTicket token.
@@ -38,46 +40,26 @@ contract MsgTicket is ERC721, Ownable {
      */
     function mintTicket(address to) public onlyOwner returns (uint256 tokenId) {
         tokenId = _tokenIdCounter; 
-        _tokenIdCounter += 1; 
         _safeMint(to, tokenId); 
 
         emit TicketMinted(to, tokenId, block.number);
+
+        _tokenIdCounter += 1; 
     }
 
     /**
     * @dev Function to update the Merkle root for a specific ticket.
     * @param tokenId The ID of the token whose Merkle root is to be updated.
-    * @param previousHashes The array of hashes representing the old Merkle tree.
-    * @param newHash The hash of the new value to be added.
+    * @param newRoot The new Merkle tree root.
     */
-    function updateMerkleRoot(uint256 tokenId, bytes32[] memory previousHashes, bytes32 newHash) public onlyOwner {
+    function updateMerkleRoot(uint256 tokenId, bytes32 newRoot) public onlyOwner {
         if (ownerOf(tokenId) == address(0)) {
             revert ERC721NonexistentToken(tokenId);
         }
 
-        bytes32 oldMerkleRoot = merkleRoots[tokenId];
+        merkleRoots[tokenId] = newRoot;
 
-        bytes32[] memory newHashes;
-        if (oldMerkleRoot == bytes32(0)) {
-            // If no previous Merkle root, set the new root directly
-            newHashes = new bytes32[](1);
-            newHashes[0] = newHash;
-        } else {
-            bytes32 calculatedOldRoot = getRoot(previousHashes);  
-
-            require(calculatedOldRoot == oldMerkleRoot, "Invalid previous Merkle tree");
-
-            newHashes = new bytes32[](previousHashes.length + 1);
-            for (uint256 i = 0; i < previousHashes.length; i++) {
-                newHashes[i] = previousHashes[i];
-            }
-            newHashes[previousHashes.length] = newHash;
-        }
-
-        bytes32 newMerkleRoot = getRoot(newHashes);  
-        merkleRoots[tokenId] = newMerkleRoot;
-
-        emit MerkleRootUpdated(tokenId, newMerkleRoot, block.number);
+        emit MerkleRootUpdated(tokenId, newRoot, block.number);
     }
 
     /**

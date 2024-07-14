@@ -1,7 +1,7 @@
 const { loadFixture } = require("@nomicfoundation/hardhat-toolbox/network-helpers");
 const { expect } = require("chai");
 
-const { StandardMerkleTree, buildMerkleTree, createProof, calculateLeafHash } = require('../../iso20022-message-gateway/packages/merkle-tree-validator/src/index');
+const { buildMerkleTree, createProof, calculateLeafHash } = require('../../iso20022-message-gateway/packages/merkle-tree-validator/src/index');
 
 describe("MsgTicket", function () {
   async function deployMsgTicketFixture() {
@@ -51,10 +51,9 @@ describe("MsgTicket", function () {
       const values = [['message']];
       const leafEncoding = ['string'];
       const tree = buildMerkleTree(values, leafEncoding);
-      const newLeaf = calculateLeafHash(tree, ['message']);
 
       await msgTicket.mintTicket(otherAccount.address);
-      await msgTicket.updateMerkleRoot(tokenId, [], newLeaf);
+      await msgTicket.updateMerkleRoot(tokenId,tree.root);
 
       expect(await msgTicket.merkleRoots(tokenId)).to.equal(tree.root);
     });
@@ -62,24 +61,35 @@ describe("MsgTicket", function () {
     it("Should allow the owner to update the Merkle root", async function () {
       const { msgTicket, otherAccount } = await loadFixture(deployMsgTicketFixture);
       const tokenId = 0;
-
-      const values = [['message']];
       const leafEncoding = ['string'];
-      const tree = buildMerkleTree(values, leafEncoding);
-      const firstLeaf = calculateLeafHash(tree, ['message']);
+      const values = [['message']];
+    
+      let tree = buildMerkleTree(values, leafEncoding);
 
       await msgTicket.mintTicket(otherAccount.address);
-      await msgTicket.updateMerkleRoot(tokenId, [], firstLeaf);
 
-      const newLeaf = calculateLeafHash(tree, ['newMessage']);
-      const previousHashes = tree.tree; 
+     await msgTicket.updateMerkleRoot(tokenId, tree.root);
+    
+      // Verify the initial Merkle root is set correctly
+      expect(await msgTicket.merkleRoots(tokenId)).to.equal(tree.root);
+    
+      // Add a new leaf and update the Merkle root
+      values.push(['newMessage-123']);
+      tree = buildMerkleTree(values, leafEncoding);
 
-      await msgTicket.updateMerkleRoot(tokenId, previousHashes, newLeaf);
+      await msgTicket.updateMerkleRoot(tokenId, tree.root);
 
-      const updatedValues = [...values, ['newMessage']];
-      const updatedTree = buildMerkleTree(updatedValues, leafEncoding);
+      // Verify the Merkle root after adding 'newMessage'
+      expect(await msgTicket.merkleRoots(tokenId)).to.equal(tree.root);
+    
+      // Add another new leaf and update the Merkle root
+      values.push(['12415jklöafweaklae']);
+      tree = buildMerkleTree(values, leafEncoding);
 
-      expect(await msgTicket.merkleRoots(tokenId)).to.equal(updatedTree.root);
+      await msgTicket.updateMerkleRoot(tokenId, tree.root);
+
+      // Verify the Merkle root after adding 'messageThree'
+      expect(await msgTicket.merkleRoots(tokenId)).to.equal(tree.root);
     });
 
     it("Should emit MerkleRootUpdated event on Merkle root update", async function () {
@@ -91,14 +101,12 @@ describe("MsgTicket", function () {
       const values = [['message']];
       const leafEncoding = ['string'];
       const tree = buildMerkleTree(values, leafEncoding);
-      const newLeaf = calculateLeafHash(tree, ['message']);
 
-      await expect(msgTicket.updateMerkleRoot(tokenId, [], newLeaf))
+      await expect(msgTicket.updateMerkleRoot(tokenId, tree.root))
         .to.emit(msgTicket, "MerkleRootUpdated")
-        .withArgs(tokenId, newLeaf, await ethers.provider.getBlockNumber() + 1);
+        .withArgs(tokenId, tree.root, await ethers.provider.getBlockNumber() + 1);
 
 
-      expect(await msgTicket.merkleRoots(tokenId)).to.equal(newLeaf);
       expect(await msgTicket.merkleRoots(tokenId)).to.equal(tree.root);
       
     });
@@ -116,7 +124,7 @@ describe("MsgTicket", function () {
       const leaf = calculateLeafHash(tree, ['message']);
 
       await msgTicket.mintTicket(otherAccount.address);
-      await msgTicket.updateMerkleRoot(tokenId, tree.tree, leaf);
+      await msgTicket.updateMerkleRoot(tokenId, tree.root);
 
       expect(await msgTicket.verifyMessage(tokenId, leaf, proof)).to.be.true;
     });
@@ -130,10 +138,9 @@ describe("MsgTicket", function () {
       const values = [['message']];
       const tree = buildMerkleTree(values, leafEncoding);
       const proof = createProof(tree, ['message']);
-      const leaf = calculateLeafHash(tree, ['message']);
 
       await msgTicket.mintTicket(otherAccount.address);
-      await msgTicket.updateMerkleRoot(tokenId, tree.tree, leaf);
+      await msgTicket.updateMerkleRoot(tokenId, tree.root);
 
       const updatedValues = [...values, ['evil']];
       const updatedTree = buildMerkleTree(updatedValues, leafEncoding);

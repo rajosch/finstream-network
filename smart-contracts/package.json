@@ -1,5 +1,5 @@
 {
-  "name": "hardhat-project",
+  "name": "finstream-contracts",
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
     "axios": "^1.7.2",

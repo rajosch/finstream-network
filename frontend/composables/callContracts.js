@@ -29,8 +29,8 @@ async function initializeWallets() {
 
 function setTokens(currency) {
     return {
-        fromToken: currency.localeCompare('$') === 0 ? store.contracts.value.find(obj => obj.name === 'USDC').address :  store.contracts.value.find(obj => obj.name === 'EURC').address,
-        toTOken: currency.localeCompare('€') === 0 ? store.contracts.value.find(obj => obj.name === 'USDC').address :  store.contracts.value.find(obj => obj.name === 'EURC').address
+      fromToken: currency.localeCompare('$') === 0 ? store.contracts.value.find(obj => obj.name === 'USDC').address :  store.contracts.value.find(obj => obj.name === 'EURC').address,
+      toToken: currency.localeCompare('€') === 0 ? store.contracts.value.find(obj => obj.name === 'USDC').address :  store.contracts.value.find(obj => obj.name === 'EURC').address
     }
 }
 
@@ -39,8 +39,14 @@ export const mintTicket = async (bankName) => {
   const bank = bankName.localeCompare('Bank USA') === 0 ? usWallet : euWallet;
   const controllerAddress = store.contracts.value.find(obj => obj.name === 'Controller').address;
   const controller = new ethers.Contract(controllerAddress, controllerAbi, bank);
-  const ticket = await controller.initiateTicket();
-  return ticket.value.toString();
+
+  const ticketIdSimulated = await controller.initiateTicket.staticCall();
+  const tx = await controller.initiateTicket();
+
+  // Wait for the transaction to be mined
+  await tx.wait();
+
+  return ticketIdSimulated.toString();
 }
 
 export const updateMerkleRoot = async (bankName, ticketId, root) => {
@@ -84,11 +90,12 @@ export const getExchangeRate = async () => {
   return ethers.formatUnits(latestRoundData.answer, 8);
 }
 
-export const transferFunds = async (debtor, creditor, currency, amount, ticketId, leaf, proof) => {
+export const transferFunds = async (debtor, debtorAgent, creditorAgent, amount, ticketId, leaf, proof) => {
   const { usWallet, euWallet } = await initializeWallets();
-  const { fromToken, toToken } = setTokens();
+  const { fromToken, toToken } = setTokens(debtor.currency);
   const bank = debtor.name.localeCompare('Bank USA') === 0 ? usWallet : euWallet;
   const controllerAddress = store.contracts.value.find(obj => obj.name === 'Controller').address;
   const controller = new ethers.Contract(controllerAddress, controllerAbi, bank);
-  await controller.initiateTransaction(debtor, creditor, fromToken, toToken, ethers.parseUnits(amount.toString(), 18), ticketId, leaf, proof);
+
+  await controller.initiateTransaction(debtorAgent, creditorAgent, fromToken, toToken, ethers.parseUnits(amount.toString(), 18), ticketId, leaf, proof);
 }

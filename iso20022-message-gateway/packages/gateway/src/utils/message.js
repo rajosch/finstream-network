@@ -19,7 +19,7 @@ async function createMessage(messageType, messageArgs, ticketId, xsdContent, roo
       const buffer = await xmlToBin(message, root, 'Document');
 
       const messageHash = ethers.keccak256(buffer);
-
+      
       // Encrypt message
       // return encryptFile(buffer, wallets, parent, ticketId);
       return {

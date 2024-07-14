@@ -120,21 +120,20 @@ contract Controller is Ownable {
     /**
      * @dev Function to initiate a ticket set.
      */
-    function initiateTicket() public returns (uint256 ticketId) {
+    function initiateTicket() public returns (uint256 tokenId) {
         require(clients[msg.sender], "Sender is not a registered client");
-        ticketId = msgTicket.mintTicket(msg.sender);
+        tokenId = msgTicket.mintTicket(msg.sender);
     }
 
     /**
         * @dev Function to update the Merkle tree of a ticket.
         * @param ticketId The ID of the ticket.
-        * @param previousHashes The array of hashes representing the old Merkle tree.
-        * @param newHash The hash of the new value to be added.
+        * @param newRoot The new Merkle tree root.
     */
-    function updateMerkleRoot(uint256 ticketId, bytes32[] memory previousHashes, bytes32 newHash) public {
+    function updateMerkleRoot(uint256 ticketId, bytes32 newRoot) public {
         require(clients[msg.sender], "Sender is not a registered client");
         require(msg.sender == msgTicket.ownerOf(ticketId), "Sender is not the owner of the ticket");
-        msgTicket.updateMerkleRoot(ticketId, previousHashes, newHash);
+        msgTicket.updateMerkleRoot(ticketId, newRoot);
     }
 
     // OnlyOwner functions from Treasury. AccessControl would be better here. This is just a quick and dirty solution.
