@@ -35,18 +35,6 @@
       <p class="text-lg md:text-xl mb-8 text-center">
         Finstream is designed to facilitate seamless cross-border payments using blockchain technology. It provides a secure, efficient, and transparent way to transfer money internationally.
       </p>
-      <div class="flex justify-center h-1/2">
-        <div class="aspect-w-16 aspect-h-9 w-full max-w-2xl">
-          <!-- UPDATE VIDEO ID! -->
-          <iframe
-            class="w-full h-full rounded-lg shadow-lg"
-            src="https://www.youtube.com/embed/kvPkgd6eQKU"
-            frameborder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen
-          />
-        </div>
-      </div>
     </section>
 
     <section>
