@@ -46,31 +46,6 @@ Note that this only provides the information relevant for the scope of the hacka
 #### Definition
 The CustomerCreditTransferInitiation message is sent by the initiating party to the forwarding agent or debtor agent. 
 It is used to request movement of funds from the debtor account to a creditor. 
-#### Usage
-Used to exchange:
-- one or more instances of credit transfer initiation;
-- payment transactions that result in electronic cash transfer to creditor account
-
-The message can be used in a direct or a relay scenario:
-- in direct scenario the message is sent directly to the debitor agent
-- in a relay scenario it is sent to a forwarding agent, which acts as a concentrating financial institution
-
-The message can also be used by an initiating party that has authority to send the message on behalf of the debtor.
-
-Can be used in domestic and cross-border scenarios.
-
-The CustomerCreditTransferInitiation message must not be used by the debtor agent to execute the credit transfer instruction(s). 
-The FIToFICustomerCreditTransfer message must be used instead.
-
-#### Outline
-##### 3 Message Bulding Blocks
-1. GroupHeader
-a. Set of characteristics shared by all inidivdual transactions included in the message.
-2. PaymentInformation
-a. Set of characteristics that applies to the debit side of the payment transactins included in the credit transfer initiation.
-3. SupplementaryData
-a. Additional information that cannot be captured in the structured elements and/or any other specific block.
-
 
 ### pacs.002.001.14 - Payment Status Report v14
 #### Definition
@@ -78,6 +53,10 @@ The CustomerPaymentStatusReport message is sent by an instructed agent to the pr
 It is used to inform this party about the positive or negative status of an instruction (either single or file). It is also used to report on a pending instruction.
 
 ### fxtr.002.001.04 - Foreign Exchange Instruction
-### fxtr.001.001.04 - Foreign Exchange Confirmation
+#### Definition
+The Foreign Exchange Instruction message is sent by a market participant to a counterparty or their designated agent. It is used to provide details about a proposed foreign exchange transaction, specifying the currency pair, amounts, and the desired execution terms. This message type is typically used in negotiations prior to finalizing a foreign exchange deal, serving as an instruction to execute the trade under the terms outlined.
 
+### fxtr.001.001.04 - Foreign Exchange Confirmation
+#### Definition
+The Foreign Exchange Confirmation message is sent by a market participant to a counterparty or their designated agent. This message formally confirms the details of a completed foreign exchange transaction. It includes information such as the transaction date, settlement details, traded currencies, and rates. It serves as a binding confirmation of the trade, providing both parties with a record of the agreed terms for reconciliation and legal purposes.
 

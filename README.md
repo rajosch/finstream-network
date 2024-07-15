@@ -191,6 +191,9 @@ Navigate to the iso20022-message-gateway directory. This is a monorepo that requ
 cd iso20022-message-gateway
 pnpm install
 ```
+
+Additionally read through and follow the pre-requisites in the [README](./iso20022-message-gateway/README.md).
+
 ### Frontend
 
 Navigate to the frontend directory. This directory contains a Nuxt 3 application.
