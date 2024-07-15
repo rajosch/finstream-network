@@ -457,7 +457,7 @@ export default {
       await this.queryData();
 
       const rateNumber = await getExchangeRate();
-      // const rateNumber = 1.07;
+
       const exchangeRate = debtor.currency === '$' ? (1 / rateNumber) : rateNumber; 
 
       const amountReceived = this.transferAmount * exchangeRate;
@@ -529,8 +529,7 @@ export default {
 
       parent = message.messageId;
 
-       await updateTransactionStatus(transactionId, 'transfering funds', 3001);
-
+      await updateTransactionStatus(transactionId, 'transfering funds', 3001);
 
       // Update tables
       await this.queryData();
