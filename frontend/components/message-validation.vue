@@ -62,7 +62,7 @@
     </button>
     <section class="text-gray-700">
       <div v-if="selectedRoot" class="my-5">
-        Current on-chain Merkle tree root: <span class="font-semibold">{{ selectedRoot.root }}</span>
+        Current selected Merkle tree root: <span class="font-semibold">{{ selectedRoot.root }}</span>
       </div>
       <div
         v-if="roots && roots.length"

@@ -27,14 +27,185 @@
 
     <section
       id="about"
-      class="p-10 lg:px-56 h-[75vh] flex flex-col justify-center"
+      class="p-10 lg:px-56 h-90 flex flex-col justify-center"
     >
       <h2 class="text-2xl md:text-4xl font-bold mb-4 text-center">
         What is Finstream Network?
       </h2>
       <p class="text-lg md:text-xl mb-8 text-center">
-        Finstream is designed to facilitate seamless cross-border payments using blockchain technology. It provides a secure, efficient, and transparent way to transfer money internationally.
+        Finstream is a PoC to showcase a seamless cross-border payments using blockchain technology.
+        It provides a secure, efficient, and transparent way to transfer money internationally.
       </p>
+      <div id="message-verification h-full overflow-auto">
+        <h2 class="text-xl font-semibold mb-5">
+          How the message verification works 
+        </h2>
+        <div class="mb-4 grid gap-y-2">
+          <p>
+            In the <b>Message Storage & Verification</b> section you can add and verify example messages.
+          </p>
+          <ol class="list-decimal">
+            <li>
+              <b>message</b> is a message according to the ISO20022 standard.
+            </li>
+            <li>
+              <b>binData</b> is the same message stored in binary.
+            </li>
+            <li>
+              <b>messageHash</b> is the keccak256 hash of the binary data.
+            </li>
+            <li>
+              <b>ticketId</b> is the ID the ticket associated with these messages would have on the blockchain.
+            </li>
+            <li>
+              <b>parent</b> refers to the message that is the immediate predecessor of the ticket.
+            </li>
+            <li>
+              <b>status</b> shows if the validity of the message has been verified. There are three possible states:
+              <ul class="pl-2 list-disc">
+                <li><i>unverified</i></li>
+                <li><i>verified</i></li>
+                <li><i>corrupted</i></li>
+              </ul>
+            </li>
+            <li>
+              The <span class="text-green-500">verify</span> button checks each of the messages individually agains the <i>current selected root</i>.
+            </li>
+          </ol>
+          <p>
+            The initial status of each message is <i>unverified</i>.
+          </p>
+          <img
+            src="/img/explanation/1.png"
+            class=""
+          > 
+        </div>
+        <div class="mb-4 grid gap-y-2">
+          <p>
+            Clicking the  <span class="text-green-500">verify</span> button changes the status of the message to <i>verified</i> if it is valid.
+          </p>
+          <p>
+            The validity gets checked by building the Merkle tree locally with all message hashes and creating a proof with the selected hash. This proof then gets verified against root which is stored on-chain.
+          </p>
+          <img
+            src="/img/explanation/2.png"
+            class=""
+          > 
+        </div>
+        <div class="mb-4 grid gap-y-2">
+          <p>
+            Adding a new message the Merkle tree gets re-calculated and a new root saved on-chain. 
+          </p>
+          <img
+            src="/img/explanation/3.png"
+            class=""
+          > 
+        </div>
+        <div class="mb-4 grid gap-y-2">
+          <p>
+            Everytime a root for a ticket is updated it also gets logged.
+            This enables a potential auditor to traverse the messages and verify them against each individual root.
+          </p>
+          <p>
+            In the example shown below the first root is selected, after both messages have been successfully verified against the current on-chain root.
+          </p>
+          <img
+            src="/img/explanation/4.png"
+            class=""
+          > 
+        </div>
+        <div class="mb-4 grid gap-y-2">
+          <p>
+            Checking both messages against the selected historical root shows that the first message remains valid while the new message cannot be verified against it.
+          </p>
+          <img
+            src="/img/explanation/5.png"
+            class=""
+          > 
+        </div>
+        <div class="mb-4 grid gap-y-2">
+          <p>
+            Here we are adding a third message and successfully verifying the messages against the new root.
+          </p>
+          <img
+            src="/img/explanation/6.png"
+            class=""
+          > 
+        </div>
+        <div class="mb-4 grid gap-y-2">
+          <p>
+            Now we open the message and tamper with it, changing the time of the message creation from 12:38...
+          </p>
+          <img
+            src="/img/explanation/7.png"
+            class=""
+          > 
+        </div>
+        <div class="mb-4 grid gap-y-2">
+          <p>
+            ...to 12:45, updating the stored binary and message hash in the process. 
+          </p>
+          <p>
+            Only the binary gets stored in the actual PoC. 
+            The message hash then gets calculated from the binary. 
+            tampering with the data always includes a change in the message hash.
+          </p>
+          <p>
+            In the PoC we assume that a malicious actor cannot update the on-chain root with falsified data. 
+            This is not enforced in the current implementation but could be done by building the tree itself on-chain instead of just passing the new root.
+          </p>
+          <p>
+            To prevent a malicious actor from falsifying data from the start there would have to be additional checks.
+            This method only serves to protect against after-the-fact data tampering.
+          </p>
+          <img
+            src="/img/explanation/8.png"
+            class=""
+          > 
+        </div>
+        <div class="mb-4 grid gap-y-2">
+          <p>
+            Trying to verify the messages against the on-chain root all of the messages return <i>corrupted</i>, 
+            signaling that one or more of the messages have been tampered with.
+          </p>
+          <img
+            src="/img/explanation/9.png"
+            class=""
+          > 
+        </div>
+        <div class="mb-4 grid gap-y-2">
+          <p>
+            Now we can select older roots to try and find out which messages are still valid.
+          </p>
+          <img
+            src="/img/explanation/10.png"
+            class=""
+          > 
+        </div>
+        <div class="mb-4 grid gap-y-2">
+          <p>
+            The last root returns verifies all of the older messages which means that the last message has been corrupted. 
+          </p>
+          <img
+            src="/img/explanation/11.png"
+            class=""
+          > 
+        </div>
+      </div>
+      <div class="mb-8">
+        <h2 class="text-xl font-semibold my-4">
+          Potential Problems
+        </h2>
+        <ul class="list-disc pl-5">
+          <li><b>Problems:</b>
+            <ul class="list-disc pl-4">
+              <li>Scalability concerns due to transaction costs and time as the blockchain grows.</li>
+              <li>Dependence on accurate initial data entry, as errors are permanently recorded due to blockchain's immutability.</li>
+              <li>Tempering with multiple data entries could be used to mask actual data tampering, complicating detection and correction.</li>
+            </ul>
+          </li>
+        </ul>
+      </div>
     </section>
 
     <section>

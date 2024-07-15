@@ -1,8 +1,20 @@
-# FinStream - Network
+# FinStream Network
 
+The FinStream Network is a system designed to integrate blockchain technology with financial transactions. 
+This project is a PoC to showcase how it facilitates the creation, management, and verification of financial messages using the ISO 20022 standard, enhancing transaction security and traceability.
 
-## TODO
+## Features
 
-### Frontend
+- Transaction planning and execution without initial blockchain dependency.
+- Integration of blockchain calls into transactions.
+- Real-time transaction status updates.
 
-* [ ] Explain that encryption is taken out for PoC but would be possible (multi-party-encryption)
+## Getting Started
+
+### Prerequisites
+
+- Node.js
+- Vue.js
+- Solidity
+
+### Setup
